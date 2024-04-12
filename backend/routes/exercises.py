@@ -6,20 +6,8 @@ from sqlmodel import Session, select, insert, delete, update
 
 from db import engine, SQLModel
 
-from models.models import (
-    Exercise,
-    SingleWorkout,
-    WorkoutPlan,
-    CreateWorkoutPlanRequest,
-    UpdateWorkoutPlanRequest,
-    User,
-    ResistanceBand,
-    MuscleGroup,
-    BandColor,
-    Gender,
-    WeightUnits,
-    HeightUnits,
-    ResistenceType,
+from models.exercise import(
+    Exercise
 )
 
 router = APIRouter()

@@ -4,24 +4,20 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, status
 from sqlmodel import Session, select, insert, delete, update
 
-from db import engine, SQLModel
+from db import engine
 
-from models.models import (
-    Exercise,
-    SingleWorkout,
-    WorkoutPlan,
+from models.workout_plan import (
+    WorkoutPlan
+)
+
+from models.requests import (
     CreateWorkoutPlanRequest,
-    UpdateWorkoutPlanRequest,
-    User,
-    ResistanceBand,
-    MuscleGroup,
-    BandColor,
-    Gender,
-    WeightUnits,
-    HeightUnits,
-    ResistenceType,
-    WorkoutPlanResponse,
-    Response
+    UpdateWorkoutPlanRequest
+)
+
+from models.responses import (
+    Response,
+    WorkoutPlanResponse
 )
 
 router = APIRouter()
@@ -33,7 +29,7 @@ async def get_workout_plans() -> Response:
     with Session(bind=engine) as session:
         workout_plans = session.exec(select(WorkoutPlan)).all()
         data = [WorkoutPlanResponse(**workout_plan.model_dump()) for workout_plan in workout_plans]
-        return Response(data=data, message="Workout plans fetched successfully.")
+        return Response(data=data, detail="Workout plans fetched successfully.")
     
 @router.get("/workout-plans/{workout_plan_uuid}", response_model=Response, status_code=status.HTTP_200_OK)
 async def get_workout_plan(workout_plan_uuid: UUID) -> Response:
@@ -42,7 +38,7 @@ async def get_workout_plan(workout_plan_uuid: UUID) -> Response:
         if not workout_plan:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Workout Plan UUID: {workout_plan_uuid} not found.")
         data = WorkoutPlanResponse(**workout_plan.model_dump())
-        return Response(data=data, message="Workout plan fetched successfully.")
+        return Response(data=data, detail="Workout plan fetched successfully.")
 
 @router.post("/workout-plans/", response_model=Response, status_code=status.HTTP_201_CREATED)
 async def add_workout_plan(workout_plan_request: CreateWorkoutPlanRequest) -> Response:
@@ -52,7 +48,7 @@ async def add_workout_plan(workout_plan_request: CreateWorkoutPlanRequest) -> Re
         session.commit()
         workout_plan = session.exec(select(WorkoutPlan).where(WorkoutPlan.uuid == uuid)).first()
         data = WorkoutPlanResponse(**workout_plan.model_dump())
-        return Response(data=data, message="Workout plan added successfully.")
+        return Response(data=data, detail="Workout plan added successfully.")
 
 @router.put("/workout-plans/{workout_plan_uuid}", response_model=Response, status_code=status.HTTP_200_OK)
 async def update_workout_plan(workout_plan_uuid: UUID, workout_plan_request: UpdateWorkoutPlanRequest) -> Response:
@@ -66,7 +62,7 @@ async def update_workout_plan(workout_plan_uuid: UUID, workout_plan_request: Upd
         session.commit() 
         session.refresh(workout_plan)
         data = WorkoutPlanResponse(**workout_plan.model_dump())
-        return Response(data=data, message="Workout Plan Updated.")
+        return Response(data=data, detail="Workout Plan Updated.")
 
 @router.delete("/workout-plans/{workout_plan_uuid}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_workout_plan(workout_plan_uuid: UUID):

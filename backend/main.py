@@ -6,38 +6,49 @@ from sqlmodel import Session, select, insert, delete
 
 from db import engine, SQLModel
 from routes import workout_plans, exercises
-from models.models import (
+
+from models.exercise import (
     Exercise,
     SingleWorkout,
+    ExerciseMuscleLink
+)
+
+from models.workout_plan import (
     WorkoutPlan,
+    WorkoutPlanExerciseLink
+    
+)
+
+from models.requests import (
     CreateWorkoutPlanRequest,
-    UpdateWorkoutPlanRequest,
-    User,
-    ResistanceBand,
-    MuscleGroup,
+    UpdateWorkoutPlanRequest
+)
+
+from models.responses import (
+    Response,
+    WorkoutPlanResponse
+)
+
+from models.user import (
+    User
+)
+
+from models.resistance_band import (
+    ResistanceBand
+)
+
+from models.enums import (
     BandColor,
     Gender,
-    WeightUnits,
     HeightUnits,
+    MuscleGroup,
     ResistenceType,
+    WeightUnits
 )
+
+
 
 
 app = FastAPI()
 app.include_router(workout_plans.router) 
 app.include_router(exercises.router)
-# Exercises
-
-# @router.get("/exercises")
-
-# @router.post("/exercises")
-# @router.update("/exercises/{exercise_id}")
-# @router.delete("/exercises/{exercise_id}")
-
-# @router.get("/exercises/{exercise_id}")
-# 
-# @router.get("/users")
-# 
-# @router.get("/users/{user_id}")
-# 
-# @router.get("/settings")

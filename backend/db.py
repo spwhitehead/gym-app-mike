@@ -1,5 +1,7 @@
-from sqlmodel import SQLModel, Field, create_engine
-from models.models import ExerciseMuscleLink, Exercise, SingleWorkout, WorkoutPlanExerciseLink, WorkoutPlan, User
+from sqlmodel import SQLModel, create_engine
+from models.exercise import ExerciseMuscleLink, Exercise, SingleWorkout
+from models.workout_plan import WorkoutPlanExerciseLink, WorkoutPlan
+from models.user import User
 
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///data/{sqlite_file_name}"
