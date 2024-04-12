@@ -20,52 +20,59 @@ from models.models import (
     WeightUnits,
     HeightUnits,
     ResistenceType,
+    WorkoutPlanResponse,
+    Response
 )
 
 router = APIRouter()
 
 
 # Workout Plans
-@router.get("/workout-plans")
-async def get_workout_plans():
+@router.get("/workout-plans", response_model=Response, status_code=status.HTTP_200_OK)
+async def get_workout_plans() -> Response:
     with Session(bind=engine) as session:
         workout_plans = session.exec(select(WorkoutPlan)).all()
-        return workout_plans
+        data = [WorkoutPlanResponse(**workout_plan.model_dump()) for workout_plan in workout_plans]
+        return Response(data=data, message="Workout plans fetched successfully.")
     
-@router.get("/workout-plans/{workout_plan_id}")
-async def get_workout_plan(workout_plan_id: UUID):
+@router.get("/workout-plans/{workout_plan_uuid}", response_model=Response, status_code=status.HTTP_200_OK)
+async def get_workout_plan(workout_plan_uuid: UUID) -> Response:
     with Session(bind=engine) as session:
-        workout_plan = session.exec(select(WorkoutPlan).where(WorkoutPlan.id == workout_plan_id)).first()
+        workout_plan = session.exec(select(WorkoutPlan).where(WorkoutPlan.uuid == workout_plan_uuid)).first()
         if not workout_plan:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Workout Plan ID: {workout_plan_id} not found.")
-        return workout_plan
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Workout Plan UUID: {workout_plan_uuid} not found.")
+        data = WorkoutPlanResponse(**workout_plan.model_dump())
+        return Response(data=data, message="Workout plan fetched successfully.")
 
-@router.post("/workout-plans/")
-async def add_workout_plan(workout_plan_request: CreateWorkoutPlanRequest):
+@router.post("/workout-plans/", response_model=Response, status_code=status.HTTP_201_CREATED)
+async def add_workout_plan(workout_plan_request: CreateWorkoutPlanRequest) -> Response:
     with Session(bind=engine) as session:
-        workout_plan = session.exec(insert(WorkoutPlan).values(id=new_uuid(), **workout_plan_request.model_dump()))
+        uuid = new_uuid()
+        session.exec(insert(WorkoutPlan).values(uuid=uuid, **workout_plan_request.model_dump()))
         session.commit()
-        session.refresh(workout_plan)
-        return WorkoutPlan.create_response(**workout_plan.model_dump())
+        workout_plan = session.exec(select(WorkoutPlan).where(WorkoutPlan.uuid == uuid)).first()
+        data = WorkoutPlanResponse(**workout_plan.model_dump())
+        return Response(data=data, message="Workout plan added successfully.")
 
-@router.put("/workout-plans/{workout_plan_id}")
-async def update_workout_plan(workout_plan_id: UUID, workout_plan_request: UpdateWorkoutPlanRequest):
+@router.put("/workout-plans/{workout_plan_uuid}", response_model=Response, status_code=status.HTTP_200_OK)
+async def update_workout_plan(workout_plan_uuid: UUID, workout_plan_request: UpdateWorkoutPlanRequest) -> Response:
     with Session(bind=engine) as session:
-        workout_plan = session.exec(update(WorkoutPlan).where(WorkoutPlan.id == workout_plan_id).values(
+        workout_plan = session.exec(select(WorkoutPlan).where(WorkoutPlan.uuid == workout_plan_uuid)).first()
+        if not workout_plan:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail= f"Workout Plan UUID: {workout_plan_uuid} not found.")
+        session.exec(update(WorkoutPlan).where(WorkoutPlan.uuid == workout_plan_uuid).values(
             name=workout_plan_request.name if workout_plan_request.name is not None else WorkoutPlan.name,
             description=workout_plan_request.name if workout_plan_request.name is not None else WorkoutPlan.name))
-        if not workout_plan:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail= f"Workout Plan ID: {workout_plan_id} not found.")
         session.commit() 
         session.refresh(workout_plan)
-        return WorkoutPlan.update_response(**workout_plan.model_dump())
+        data = WorkoutPlanResponse(**workout_plan.model_dump())
+        return Response(data=data, message="Workout Plan Updated.")
 
-@router.delete("/workout-plans/{workout_plan_id}")
-async def delete_workout_plan(workout_plan_id: UUID):
+@router.delete("/workout-plans/{workout_plan_uuid}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_workout_plan(workout_plan_uuid: UUID):
     with Session(bind=engine) as session:
-        workout_plan = session.exec(select(WorkoutPlan).where(WorkoutPlan.id == workout_plan_id)).first()
+        workout_plan = session.exec(select(WorkoutPlan).where(WorkoutPlan.uuid == workout_plan_uuid)).first()
         if not workout_plan:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Workout Plan ID: {workout_plan_id} not found.")
-        session.exec(delete(WorkoutPlan).where(WorkoutPlan.id == workout_plan_id))
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Workout Plan UUID: {workout_plan_uuid} not found.")
+        session.exec(delete(WorkoutPlan).where(WorkoutPlan.uuid == workout_plan_uuid))
         session.commit()
-        return WorkoutPlan.delete_response(**workout_plan.model_dump()) 

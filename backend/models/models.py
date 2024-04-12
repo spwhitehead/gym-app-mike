@@ -1,8 +1,6 @@
 from enum import Enum
-from dataclasses import dataclass
 from datetime import date
 from uuid import UUID
-from uuid import uuid4 as new_uuid
 
 from pydantic import BaseModel
 from sqlmodel import Field, Relationship, SQLModel, Column, Enum as SQLEnum
@@ -53,26 +51,30 @@ class ResistenceType(str, Enum):
 
 # Classes
 class ResistanceBand(SQLModel, table=True):
-    id: UUID | None = Field(default = None, primary_key=True)
+    id: int | None = Field(default = None, primary_key=True)
+    uuid: UUID | None = Field(default = None, unique=True)
     color: BandColor = Field(sa_column=SQLEnum(BandColor))
     resistance_weight: float
 
 class ExerciseMuscleLink(SQLModel, table=True):
-    exercise_id: UUID | None = Field(default = None, foreign_key="exercise.id", primary_key=True)
+    id: int | None = Field(default= None, primary_key=True)
+    exercise_id: int = Field(default=None, foreign_key="exercise.id")
+    musclegroup: MuscleGroup = Field(sa_column=Column(SQLEnum(MuscleGroup)))
     exercises: 'Exercise' = Relationship(back_populates="target_muscles")
-    musclegroup: MuscleGroup = Field(sa_column=Column(SQLEnum(MuscleGroup), primary_key=True))
 
 class Exercise(SQLModel, table=True):
-    id: UUID | None = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
+    uuid: UUID | None = Field(default=None, unique=True)
     name: str
     description: str
     target_muscles: list[ExerciseMuscleLink] = Relationship(back_populates="exercises")
 
 class SingleWorkout(SQLModel, table=True):
-    id: UUID | None = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
+    uuid: UUID | None = Field(default=None, unique=True)
     name: str
     description: str
-    exercise_id: UUID = Field(default=None, foreign_key="exercise.id")
+    exercise_id: int = Field(default=None, foreign_key="exercise.id")
     exercise: Exercise = Relationship(sa_relationship_kwargs={"lazy": "joined"})
     sets: int
     reps: int
@@ -80,26 +82,19 @@ class SingleWorkout(SQLModel, table=True):
     resistence_weight: float
 
 class WorkoutPlanExerciseLink(SQLModel, table=True):
-    workout_plan_id: UUID = Field(foreign_key="workoutplan.id", primary_key=True)
-    exercise_id: UUID = Field(foreign_key="exercise.id", primary_key=True)
+    workout_plan_id: int = Field(foreign_key="workoutplan.id", primary_key=True)
+    exercise_id: int = Field(foreign_key="exercise.id", primary_key=True)
 
 class WorkoutPlan(SQLModel, table=True):
-    id: UUID | None = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
+    uuid: UUID | None = Field(default=None, unique=True)
     name: str
     description: str
     exercises: list[Exercise] = Relationship(link_model=WorkoutPlanExerciseLink)
-    
-    def create_response(id: UUID, name: str, description: str, exercises: list[Exercise] = []):
-        return {"data": {"id": id, "name": name, "description": description, "exercises": exercises, "response_message": "Workout Plan created successfully."}}
-    
-    def update_response(id: UUID, name: str, description: str, exercises: list[Exercise] = []):
-        return {"data": {"id": id, "name": name, "description": description, "exercises": exercises, "response_message": "Workout Plan updated successfully."}}
-    
-    def delete_response(id: UUID, name: str, description: str, exercises: list[Exercise] = []):
-        return {"data": {"id": id, "name": name, "description": description, "exercises": exercises, "response_message": "Workout Plan deleted."}}
 
 class User(SQLModel, table=True):
-    id: UUID | None = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
+    uuid: UUID | None = Field(default=None, unique=True)
     first_name: str
     last_name: str
     birthday: date
@@ -114,4 +109,13 @@ class CreateWorkoutPlanRequest(BaseModel):
 class UpdateWorkoutPlanRequest(BaseModel):
     name: str = None
     description: str = None
- 
+
+class WorkoutPlanResponse(BaseModel):
+    uuid: UUID
+    name: str
+    description: str
+    exercises: list[Exercise] = []
+
+class Response(BaseModel):
+    data: WorkoutPlanResponse | list[WorkoutPlanResponse]
+    message: str

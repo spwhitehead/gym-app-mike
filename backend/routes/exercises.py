@@ -32,9 +32,9 @@ async def get_exercises():
         exercises = session.exec(select(Exercise)).all()
         return exercises
 
-@router.get("/exercises/{exercise_id}")
-async def get_exercise(exercise_id: UUID):
+@router.get("/exercises/{exercise_uuid}")
+async def get_exercise(exercise_uuid: UUID):
     with Session(bind=engine) as session:
-        exercise = session.exec(select(Exercise).where(Exercise.id == exercise_id)).first()
+        exercise = session.exec(select(Exercise).where(Exercise.uuid == exercise_uuid)).first()
         if not exercise:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Exercise ID: {exercise_id} not found.")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Exercise ID: {exercise_uuid} not found.")
