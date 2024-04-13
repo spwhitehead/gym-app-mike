@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel, create_engine
-from models.exercise import ExerciseMuscleLink, Exercise, SingleWorkout
-from models.workout_plan import WorkoutPlanExerciseLink, WorkoutPlan
+from models.exercise import ExerciseMuscleLink, Exercise, WorkoutExercise
+from models.workout import WorkoutExerciseLink, Workout
 from models.user import User
 
 sqlite_file_name = "database.db"

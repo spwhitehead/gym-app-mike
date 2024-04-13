@@ -3,7 +3,7 @@ from enum import Enum
 
 from sqlmodel import SQLModel, Field, Enum as SQLEnum, Column, Relationship
 
-from models.enums import MuscleGroup, BandColor, ResistenceType
+from models.enums import MuscleGroup, BandColor, ResistanceType
 
 class ExerciseMuscleLink(SQLModel, table=True):
     id: int | None = Field(default= None, primary_key=True)
@@ -18,7 +18,7 @@ class Exercise(SQLModel, table=True):
     description: str
     target_muscles: list[ExerciseMuscleLink] = Relationship(back_populates="exercises")
 
-class SingleWorkout(SQLModel, table=True):
+class WorkoutExercise(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     uuid: UUID | None = Field(default=None, unique=True)
     name: str
@@ -27,6 +27,6 @@ class SingleWorkout(SQLModel, table=True):
     exercise: Exercise = Relationship(sa_relationship_kwargs={"lazy": "joined"})
     sets: int
     reps: int
-    resistence_type: ResistenceType
-    resistence_weight: float
+    resistance_type: ResistanceType
+    resistance_weight: float
 
