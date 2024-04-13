@@ -34,11 +34,11 @@ async def get_exercise(exercise_uuid: UUID):
         data = ExerciseData(**exercise.model_dump(), target_muscles=[muscle_link.musclegroup.value for muscle_link in exercise.target_muscles])
         return ResponseExercise(data=data, detail="Exercise fetched successfully.")
 
-@router.post("/exercies/", response_model=ResponseExercise, status_code=status.HTTP_201_CREATED)
+@router.post("/exercises/", response_model=ResponseExercise, status_code=status.HTTP_201_CREATED)
 async def add_exercise(exercise_request: CreateExerciseRequest) -> ResponseExercise:
     with Session(bind=engine) as session:
         uuid = new_uuid()
-        exercise = Exercise(uuid=uuid, **exercise_request.model_dump(exclude={"target_muscles"}))
+        exercise = Exercise(uuid=uuid, **exercise_request.model_dump(exclude_unset=True, exclude={"target_muscles"}))
         session.add(exercise)
         session.commit()
         session.refresh(exercise)
@@ -50,4 +50,20 @@ async def add_exercise(exercise_request: CreateExerciseRequest) -> ResponseExerc
         data = ExerciseData(**exercise.model_dump(), target_muscles=[muscle_link.musclegroup.value for muscle_link in exercise.target_muscles])
         return ResponseExercise(data=data, detail=f"Exercise added successfully.")
             
-        
+@router.put("/exercises/{exercise_uuid}", response_model=ResponseExercise, status_code=status.HTTP_200_OK) 
+async def update_exercise(exercise_uuid: UUID, exercise_request: UpdateExerciseRequest) -> ResponseExercise:
+    with Session(bind=engine) as session:
+        exercise = session.exec(select(Exercise).where(Exercise.uuid == exercise_uuid)).first()
+        if not exercise:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Exercise UUID: {exercise_uuid} not found.")
+        for key, value in exercise_request.model_dump(exclude_unset=True, exclude={"target_muscles"}).items():
+            setattr(exercise, key, value)
+        if exercise_request.target_muscles is not None:
+            session.exec(delete(ExerciseMuscleLink).where(exercise.id == ExerciseMuscleLink.exercise_id))
+            for muscle_group in exercise_request.target_muscles:
+                session.add(ExerciseMuscleLink(exercise_id=exercise.id, musclegroup=muscle_group.value))
+        session.commit()
+        session.refresh(exercise)
+        data = ExerciseData(**exercise.model_dump(), target_muscles=[muscle_link.musclegroup.value for muscle_link in exercise.target_muscles])
+        return ResponseExercise(data=data, detail=f"Exercise updated successfully.")
+
