@@ -36,11 +36,14 @@ async def get_workout_exercise(workout_exercise_uuid: UUID) -> ResponseWorkoutEx
 async def add_workout_exercise(workout_exercise_request: CreateWorkoutExerciseRequest) -> ResponseWorkoutExercise:
     with Session(bind=engine) as session:
         uuid = new_uuid()
+        exercise = session.exec(select(Exercise).where(Exercise.uuid == workout_exercise_request.exercise_uuid)).first()
         workout_exercise = WorkoutExercise(uuid=uuid, **workout_exercise_request.model_dump())
         workout_exercise.exercise_uuid = str(workout_exercise.exercise_uuid)
+        workout_exercise.name = exercise.name
+        workout_exercise.description = exercise.description
         session.add(workout_exercise)
         session.commit()
-        workout_exercise = session.exec(select(WorkoutExercise).where(WorkoutExercise.uuid == uuid)).first()
-        exercise = session.exec(select(Exercise).where(Exercise.uuid == workout_exercise.exercise_uuid)).first()
+        session.refresh(workout_exercise)
+        session.refresh(exercise)
         data = WorkoutExerciseData(**workout_exercise.model_dump(exclude="exercise"), exercise=ExerciseData(**exercise.model_dump(exclude={"target_muscles"}), target_muscles=[muscle.musclegroup for muscle in exercise.target_muscles]))
         return ResponseWorkoutExercise(data=data, detail="Workout Exercise added successfully.")

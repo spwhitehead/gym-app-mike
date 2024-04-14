@@ -42,16 +42,12 @@ class UpdateExerciseRequest(BaseModel):
 
 #Workout Exercise Request
 class CreateWorkoutExerciseRequest(BaseModel):
-    name: str
-    description: str
     exercise_uuid: UUID
     sets: int
     reps: int
     resistance_type: ResistanceType
     resistance_weight: float
 class UpdateWorkoutExerciseRequest(BaseModel):
-    name: str = None
-    description: str = None
     exercise_uuid: UUID = None
     sets: int = None
     reps: int = None
