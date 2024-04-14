@@ -23,8 +23,7 @@ class WorkoutExercise(SQLModel, table=True):
     uuid: UUID | None = Field(default=None, unique=True)
     name: str
     description: str
-    exercise_id: int = Field(default=None, foreign_key="exercise.id")
-    exercise: Exercise = Relationship(sa_relationship_kwargs={"lazy": "joined"})
+    exercise_uuid: int = Field(default=None, foreign_key="exercise.uuid")
     sets: int
     reps: int
     resistance_type: ResistanceType
