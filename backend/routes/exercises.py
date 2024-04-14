@@ -67,3 +67,11 @@ async def update_exercise(exercise_uuid: UUID, exercise_request: UpdateExerciseR
         data = ExerciseData(**exercise.model_dump(), target_muscles=[muscle_link.musclegroup.value for muscle_link in exercise.target_muscles])
         return ResponseExercise(data=data, detail=f"Exercise updated successfully.")
 
+@router.delete("/exercises/{exercise_uuid}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_exercise(exercise_uuid: UUID):
+    with Session(bind=engine) as session:
+        exercise = session.exec(select(Exercise).where(Exercise.uuid == exercise_uuid)).first()
+        if not exercise:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Exercise UUID: {exercise_uuid} not found.")
+        session.exec(delete(Exercise).where(Exercise.uuid == exercise_uuid))
+        session.commit()
