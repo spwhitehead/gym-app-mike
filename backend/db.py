@@ -1,5 +1,6 @@
 from sqlmodel import SQLModel, create_engine
-from models.exercise import ExerciseMuscleLink, Exercise, WorkoutExercise
+from models.exercise import ExerciseMuscleLink, Exercise
+from models.workout_exercise import WorkoutExercise
 from models.workout import WorkoutExerciseLink, Workout
 from models.user import User
 
