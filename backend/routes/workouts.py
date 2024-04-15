@@ -28,7 +28,7 @@ async def get_workouts() -> ResponseWorkoutList:
                 target_muscles = [muscle_link.musclegroup for muscle_link in exercise.target_muscles]
                 exercise_data = ExerciseData(**workout_exercise.model_dump(exclude={"target_muscles"}), target_muscles=target_muscles)
                 workout_exercises_data.append(WorkoutExerciseData(**workout_exercise.model_dump(exclude={"exercise"}),exercise=exercise_data))
-            workout_data = WorkoutData(**workout.model_dump(exclude={"exercises"}), exercises=workout_exercises_data)
+            workout_data = WorkoutData(**workout.model_dump(exclude={"workout_exercises"}), workout_exercises=workout_exercises_data)
             workout_data_list.append(workout_data)
         return ResponseWorkoutList(data=workout_data_list, detail="Workouts fetched successfully.")
 
@@ -39,8 +39,17 @@ async def get_workout(workout_uuid: UUID) -> ResponseWorkout:
         workout = session.exec(select(Workout).where(Workout.uuid == workout_uuid)).first()
         if not workout:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Workout UUID: {workout_uuid} not found.")
-        data = WorkoutData(**workout.model_dump())
+        workout_exercise_links = session.exec(select(WorkoutExerciseLink).where(WorkoutExerciseLink.workout_id == workout.id)).all()
+        workout_exercises_data = []
+        for workout_exercise_link in workout_exercise_links:
+            workout_exercise = session.exec(select(WorkoutExercise).where(WorkoutExercise.id == workout_exercise_link.workout_exercise_id)).first()
+            exercise = session.exec(select(Exercise).where(Exercise.uuid == workout_exercise.exercise_uuid)).first() 
+            target_muscles = [muscle_link.musclegroup for muscle_link in exercise.target_muscles]
+            exercise_data = ExerciseData(**workout_exercise.model_dump(exclude={"target_muscles"}), target_muscles=target_muscles)
+            workout_exercises_data.append(WorkoutExerciseData(**workout_exercise.model_dump(exclude={"exercise"}), exercise=exercise_data))
+        data = WorkoutData(**workout.model_dump(exclude={"workout_exercises"}), workout_exercises=workout_exercises_data)
         return ResponseWorkout(data=data, detail="Workout fetched successfully.")
+
 
 @router.post("/workouts/", response_model=ResponseWorkout, status_code=status.HTTP_201_CREATED)
 async def create_workout(workout_request: CreateWorkoutRequest) -> ResponseWorkout:

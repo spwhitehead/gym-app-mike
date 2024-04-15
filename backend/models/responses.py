@@ -13,7 +13,7 @@ class WorkoutData(BaseModel):
     uuid: UUID
     name: str
     description: str
-    exercises: list["WorkoutExerciseData"]
+    workout_exercises: list["WorkoutExerciseData"]
 
 class UserData(BaseModel):
     uuid: UUID

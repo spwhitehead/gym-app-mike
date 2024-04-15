@@ -14,5 +14,5 @@ class Workout(SQLModel, table=True):
     uuid: UUID | None = Field(default=None, unique=True)
     name: str
     description: str
-    exercises: list[WorkoutExercise] = Relationship(link_model=WorkoutExerciseLink)
+    workout_exercises: list[WorkoutExercise] = Relationship(link_model=WorkoutExerciseLink)
 
