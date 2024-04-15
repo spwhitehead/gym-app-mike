@@ -1,13 +1,12 @@
 from uuid import UUID
 
-from pydantic import BaseModel
 from sqlmodel import SQLModel, Field, Relationship
 
-from models.exercise import Exercise
+from models.workout_exercise import WorkoutExercise
 
 class WorkoutExerciseLink(SQLModel, table=True):
     workout_id: int = Field(foreign_key="workout.id", primary_key=True)
-    exercise_id: int = Field(foreign_key="exercise.id", primary_key=True)
+    workout_exercise_id: int = Field(foreign_key="workoutexercise.id", primary_key=True)
 
 
 class Workout(SQLModel, table=True):
@@ -15,5 +14,5 @@ class Workout(SQLModel, table=True):
     uuid: UUID | None = Field(default=None, unique=True)
     name: str
     description: str
-    exercises: list[Exercise] = Relationship(link_model=WorkoutExerciseLink)
+    exercises: list[WorkoutExercise] = Relationship(link_model=WorkoutExerciseLink)
 

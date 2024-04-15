@@ -4,15 +4,16 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-from models.exercise import Exercise, ExerciseMuscleLink
+
 from models.enums import Gender, ResistanceType
+from models.workout_exercise import WorkoutExercise
 
 # Response Data Models
 class WorkoutData(BaseModel):
     uuid: UUID
     name: str
     description: str
-    exercises: list[Exercise] = []
+    exercises: list["WorkoutExerciseData"]
 
 class UserData(BaseModel):
     uuid: UUID

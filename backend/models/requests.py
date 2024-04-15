@@ -13,6 +13,9 @@ class UpdateWorkoutRequest(BaseModel):
     name: str = None
     description: str = None
 
+class AddWorkoutExerciseRequest(BaseModel):
+    workout_exercise_uuid: UUID
+
 # User Request
 class CreateUserRequest(BaseModel):
     first_name: str
