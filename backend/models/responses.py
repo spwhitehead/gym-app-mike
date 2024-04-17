@@ -2,20 +2,20 @@ from datetime import date
 from uuid import UUID 
 
 
-from pydantic import BaseModel
+from sqlmodel import SQLModel
 
 
 from models.enums import Gender, ResistanceType
 from models.workout_exercise import WorkoutExercise
 
 # Response Data Models
-class WorkoutData(BaseModel):
+class WorkoutData(SQLModel):
     uuid: UUID
     name: str
     description: str
     workout_exercises: list["WorkoutExerciseData"]
 
-class UserData(BaseModel):
+class UserData(SQLModel):
     uuid: UUID
     first_name: str
     last_name: str
@@ -24,13 +24,13 @@ class UserData(BaseModel):
     height: int
     gender: Gender
     
-class ExerciseData(BaseModel):
+class ExerciseData(SQLModel):
     uuid: UUID
     name: str
     description: str
     target_muscles: list[str]
 
-class WorkoutExerciseData(BaseModel):
+class WorkoutExerciseData(SQLModel):
     uuid: UUID
     name: str
     description: str
@@ -41,34 +41,34 @@ class WorkoutExerciseData(BaseModel):
     resistance_weight: float
     
 # Response Models
-class ResponseWorkout(BaseModel):
+class ResponseWorkout(SQLModel):
     data: WorkoutData
     detail: str
 
-class ResponseWorkoutList(BaseModel):
+class ResponseWorkoutList(SQLModel):
     data: list[WorkoutData]
     detail: str
 
-class ResponseExercise(BaseModel):
+class ResponseExercise(SQLModel):
     data: ExerciseData
     detail: str
 
-class ResponseExerciseList(BaseModel):
+class ResponseExerciseList(SQLModel):
     data: list[ExerciseData]
     detail: str
     
-class ResponseUser(BaseModel):
+class ResponseUser(SQLModel):
     data: UserData
     detail: str
 
-class ResponseUserList(BaseModel):
+class ResponseUserList(SQLModel):
     data: list[UserData]
     detail: str
 
-class ResponseWorkoutExercise(BaseModel):
+class ResponseWorkoutExercise(SQLModel):
     data: WorkoutExerciseData
     detail: str
 
-class ResponseWorkoutExerciseList(BaseModel):
+class ResponseWorkoutExerciseList(SQLModel):
     data: list[WorkoutExerciseData]
     detail: str
