@@ -32,16 +32,16 @@ class UpdateUserRequest(BaseModel):
     height: int = None
     gender: Gender = None
 
-# Exercise Request
-class CreateExerciseRequest(BaseModel):
-     name: str
-     description: str
-     target_muscles: list[MuscleGroup] 
-
-class UpdateExerciseRequest(BaseModel):
-    name: str = None
-    description: str = None
-    target_muscles: list[MuscleGroup] = None
+## Exercise Request
+#class CreateExerciseRequest(BaseModel):
+#     name: str
+#     description: str
+#     target_muscles: list[MuscleGroup] 
+#
+#class UpdateExerciseRequest(BaseModel):
+#    name: str = None
+#    description: str = None
+#    target_muscles: list[MuscleGroup] = None
 
 #Workout Exercise Request
 class CreateWorkoutExerciseRequest(BaseModel):

@@ -5,10 +5,10 @@ from fastapi import APIRouter, HTTPException, status
 from sqlmodel import Session, select, insert, delete, update
 
 from db import engine
-from models.exercise import Exercise
+from models.exercise import Exercise, ExerciseResponseData
 from models.workout_exercise import WorkoutExercise
 from models.requests import CreateWorkoutExerciseRequest, UpdateWorkoutExerciseRequest
-from models.responses import ResponseWorkoutExercise, ResponseWorkoutExerciseList, WorkoutExerciseData, ExerciseData
+from models.responses import ResponseWorkoutExercise, ResponseWorkoutExerciseList, WorkoutExerciseData
 
 router = APIRouter()
 
@@ -20,7 +20,7 @@ async def get_workout_exercises() -> ResponseWorkoutExerciseList:
         data = []
         for workout_exercise in workout_exercises:
             exercise = session.exec(select(Exercise).where(Exercise.uuid == workout_exercise.exercise_uuid)).first()
-            data.append(WorkoutExerciseData(**workout_exercise.model_dump(exclude={"exercise"}), exercise=ExerciseData(**exercise.model_dump(exclude={"target_muscles"}), target_muscles=[muscle.musclegroup for muscle in exercise.target_muscles])))
+            data.append(WorkoutExerciseData(**workout_exercise.model_dump(exclude={"exercise"}), exercise=ExerciseResponseData(**exercise.model_dump(exclude={"target_muscles"}), target_muscles=[muscle.musclegroup for muscle in exercise.target_muscles])))
         return ResponseWorkoutExerciseList(data=data, detail="Workout Exercises fetched successfully.")
 
 @router.get("/workout-exercises/{workout_exercise_uuid}", response_model=ResponseWorkoutExercise, status_code=status.HTTP_200_OK)
@@ -30,7 +30,7 @@ async def get_workout_exercise(workout_exercise_uuid: UUID) -> ResponseWorkoutEx
         if not workout_exercise:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Workout Exercise UUID: {workout_exercise_uuid} not found.")
         exercise = session.exec(select(Exercise).where(Exercise.uuid == workout_exercise.exercise_uuid)).first()
-        data = WorkoutExerciseData(**workout_exercise.model_dump(exclude={"exercise"}), exercise=ExerciseData(**exercise.model_dump(exclude={"target_muscles"}), target_muscles=[muscle.musclegroup for muscle in exercise.target_muscles]))
+        data = WorkoutExerciseData(**workout_exercise.model_dump(exclude={"exercise"}), exercise=ExerciseResponseData(**exercise.model_dump(exclude={"target_muscles"}), target_muscles=[muscle.musclegroup for muscle in exercise.target_muscles]))
         return ResponseWorkoutExercise(data=data, detail="Workout Exercise fetched successfully.")
 
 @router.post("/workout-exercises", response_model=ResponseWorkoutExercise, status_code=status.HTTP_201_CREATED)
@@ -46,7 +46,7 @@ async def add_workout_exercise(workout_exercise_request: CreateWorkoutExerciseRe
         session.commit()
         session.refresh(workout_exercise)
         session.refresh(exercise)
-        data = WorkoutExerciseData(**workout_exercise.model_dump(exclude="exercise"), exercise=ExerciseData(**exercise.model_dump(exclude={"target_muscles"}), target_muscles=[muscle.musclegroup for muscle in exercise.target_muscles]))
+        data = WorkoutExerciseData(**workout_exercise.model_dump(exclude="exercise"), exercise=ExerciseResponseData(**exercise.model_dump(exclude={"target_muscles"}), target_muscles=[muscle.musclegroup for muscle in exercise.target_muscles]))
         return ResponseWorkoutExercise(data=data, detail="Workout Exercise added successfully.")
 
 @router.put("/workout-exercises/{workout_exercise_uuid}", response_model=ResponseWorkoutExercise, status_code=status.HTTP_200_OK)
@@ -65,7 +65,7 @@ async def update_workout_exercise(workout_exercise_uuid: UUID, workout_exercise_
         session.commit()
         session.refresh(workout_exercise)
         exercise = session.exec(select(Exercise).where(Exercise.uuid == workout_exercise.exercise_uuid)).first()
-        data = WorkoutExerciseData(**workout_exercise.model_dump(exclude="exercise"), exercise=ExerciseData(**exercise.model_dump(exclude={"target_muscles"}), target_muscles=[muscle.musclegroup for muscle in exercise.target_muscles]))
+        data = WorkoutExerciseData(**workout_exercise.model_dump(exclude="exercise"), exercise=ExerciseResponseData(**exercise.model_dump(exclude={"target_muscles"}), target_muscles=[muscle.musclegroup for muscle in exercise.target_muscles]))
         return ResponseWorkoutExercise(data=data, detail="Workout Exercise updated successfully.")
 
 @router.delete("/workout-exercises/{workout_exercise_uuid}", status_code=status.HTTP_204_NO_CONTENT) 

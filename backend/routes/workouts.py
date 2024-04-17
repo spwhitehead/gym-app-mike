@@ -5,11 +5,11 @@ from fastapi import APIRouter, HTTPException, status
 from sqlmodel import Session, select, insert, delete, update
 
 from db import engine
-from models.exercise import Exercise
+from models.exercise import Exercise, ExerciseResponseData
 from models.workout_exercise import WorkoutExercise
 from models.workout import Workout, WorkoutExerciseLink
 from models.requests import CreateWorkoutRequest, UpdateWorkoutRequest, AddWorkoutExerciseRequest
-from models.responses import ResponseWorkout, ResponseWorkoutList, WorkoutData, WorkoutExerciseData, ExerciseData
+from models.responses import ResponseWorkout, ResponseWorkoutList, WorkoutData, WorkoutExerciseData
 
 router = APIRouter()
 
@@ -26,7 +26,7 @@ async def get_workouts() -> ResponseWorkoutList:
                 workout_exercise = session.exec(select(WorkoutExercise).where(WorkoutExercise.id == workout_exercise_link.workout_exercise_id)).first()
                 exercise = session.exec(select(Exercise).where(Exercise.uuid == workout_exercise.exercise_uuid)).first()
                 target_muscles = [muscle_link.musclegroup for muscle_link in exercise.target_muscles]
-                exercise_data = ExerciseData(**workout_exercise.model_dump(exclude={"target_muscles"}), target_muscles=target_muscles)
+                exercise_data = ExerciseResponseData(**workout_exercise.model_dump(exclude={"target_muscles"}), target_muscles=target_muscles)
                 workout_exercises_data.append(WorkoutExerciseData(**workout_exercise.model_dump(exclude={"exercise"}),exercise=exercise_data))
             workout_data = WorkoutData(**workout.model_dump(exclude={"workout_exercises"}), workout_exercises=workout_exercises_data)
             workout_data_list.append(workout_data)
@@ -45,7 +45,7 @@ async def get_workout(workout_uuid: UUID) -> ResponseWorkout:
             workout_exercise = session.exec(select(WorkoutExercise).where(WorkoutExercise.id == workout_exercise_link.workout_exercise_id)).first()
             exercise = session.exec(select(Exercise).where(Exercise.uuid == workout_exercise.exercise_uuid)).first() 
             target_muscles = [muscle_link.musclegroup for muscle_link in exercise.target_muscles]
-            exercise_data = ExerciseData(**workout_exercise.model_dump(exclude={"target_muscles"}), target_muscles=target_muscles)
+            exercise_data = ExerciseResponseData(**workout_exercise.model_dump(exclude={"target_muscles"}), target_muscles=target_muscles)
             workout_exercises_data.append(WorkoutExerciseData(**workout_exercise.model_dump(exclude={"exercise"}), exercise=exercise_data))
         data = WorkoutData(**workout.model_dump(exclude={"workout_exercises"}), workout_exercises=workout_exercises_data)
         return ResponseWorkout(data=data, detail="Workout fetched successfully.")

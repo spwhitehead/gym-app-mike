@@ -7,6 +7,7 @@ from sqlmodel import SQLModel
 
 from models.enums import Gender, ResistanceType
 from models.workout_exercise import WorkoutExercise
+from models.exercise import ExerciseResponseData
 
 # Response Data Models
 class WorkoutData(SQLModel):
@@ -24,17 +25,17 @@ class UserData(SQLModel):
     height: int
     gender: Gender
     
-class ExerciseData(SQLModel):
-    uuid: UUID
-    name: str
-    description: str
-    target_muscles: list[str]
+#class ExerciseData(SQLModel):
+#    uuid: UUID
+#    name: str
+#    description: str
+#    target_muscles: list[str]
 
 class WorkoutExerciseData(SQLModel):
     uuid: UUID
     name: str
     description: str
-    exercise: ExerciseData
+    exercise: ExerciseResponseData
     sets: int
     reps: int
     resistance_type: ResistanceType
@@ -49,13 +50,13 @@ class ResponseWorkoutList(SQLModel):
     data: list[WorkoutData]
     detail: str
 
-class ResponseExercise(SQLModel):
-    data: ExerciseData
-    detail: str
-
-class ResponseExerciseList(SQLModel):
-    data: list[ExerciseData]
-    detail: str
+#class ResponseExercise(SQLModel):
+#    data: ExerciseData
+#    detail: str
+#
+#class ResponseExerciseList(SQLModel):
+#    data: list[ExerciseData]
+#    detail: str
     
 class ResponseUser(SQLModel):
     data: UserData
