@@ -24,6 +24,7 @@ class BandColor(str, Enum):
     BLACK = "black"
     PURPLE = "purple"
     ORANGE = "orange"
+    GRAY = "gray"
 
 class ResistanceType(str, Enum):
     DUMBBELL = "dumbbell"
