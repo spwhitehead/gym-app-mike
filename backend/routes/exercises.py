@@ -8,6 +8,7 @@ from sqlmodel import Session, select, insert, delete, update
 from db import engine
 
 from models.exercise import Exercise, ExerciseMuscleLink
+from models.workout_exercise import WorkoutExercise
 from models.requests import CreateExerciseRequest, UpdateExerciseRequest
 from models.responses import ResponseExercise, ResponseExerciseList, ExerciseData
 
@@ -73,5 +74,7 @@ async def delete_exercise(exercise_uuid: UUID):
         exercise = session.exec(select(Exercise).where(Exercise.uuid == exercise_uuid)).first()
         if not exercise:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Exercise UUID: {exercise_uuid} not found.")
+        session.exec(delete(WorkoutExercise).where(WorkoutExercise.exercise_uuid == exercise_uuid))
+        session.exec(delete(ExerciseMuscleLink).where(ExerciseMuscleLink.exercise_id == exercise.id))
         session.exec(delete(Exercise).where(Exercise.uuid == exercise_uuid))
         session.commit()
