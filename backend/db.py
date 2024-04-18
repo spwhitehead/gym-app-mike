@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, create_engine
+from sqlmodel import SQLModel, create_engine, Session
 from sqlite3 import Connection as SQLite3Connection
 from sqlalchemy import event
 from models.exercise import ExerciseMuscleLink, Exercise
@@ -20,3 +20,7 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
 event.listen(engine, "connect", set_sqlite_pragma)
 
 SQLModel.metadata.create_all(engine)
+
+def get_db():
+    with Session(bind=engine) as session:
+        yield session

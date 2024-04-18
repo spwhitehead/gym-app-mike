@@ -29,7 +29,7 @@ class ExerciseBase(SQLModel):
             raise ValueError(f"Each item in 'target_muscles' must be of one of: {valid_values}. Error: {str(e)}")
 class Exercise(ExerciseBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    uuid: UUID | None = Field(default_factory=new_uuid, unique=True)
+    uuid: str | None = Field(default_factory=lambda: str(new_uuid()), unique=True)
     target_muscles: list[ExerciseMuscleLink] = Relationship(sa_relationship=relationship("ExerciseMuscleLink", back_populates="exercise", cascade="all, delete, delete-orphan"))
 
 class ExerciseCreateReq(ExerciseBase):
@@ -41,7 +41,7 @@ class ExerciseUpdateReq(ExerciseBase):
     target_muscles: list[MuscleGroup] = None
     
 class ExerciseResponseData(ExerciseBase):
-    uuid: UUID
+    uuid: str
     target_muscles: list[str]
 
 

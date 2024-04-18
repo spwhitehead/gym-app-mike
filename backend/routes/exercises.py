@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from sqlmodel import Session, select, insert, delete, update, text
 
 
-from db import engine
+from db import engine, get_db
 
 from models.exercise import (
     Exercise,
@@ -16,11 +16,6 @@ from models.exercise import (
 from models.workout_exercise import WorkoutExercise
 
 router = APIRouter()
-
-def get_db():
-    with Session(bind=engine) as session:
-        yield session
-
 
 # Exercises
 @router.get("/exercises", response_model=ExerciseListResponse, status_code=status.HTTP_200_OK)
