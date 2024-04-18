@@ -27,9 +27,10 @@ class BandColor(str, Enum):
     GRAY = "gray"
 
 class ResistanceType(str, Enum):
-    DUMBBELL = "dumbbell"
-    BARBELL = "barbell"
-    BAND = "band"
+    DUMBBELL = "Dumbbell"
+    BARBELL = "Barbell"
+    BAND = "Band"
+    BODYWEIGHT = "Bodyweight"
 
 class WeightUnits(str, Enum):
     KILOGRAMS = "kg"
