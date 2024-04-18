@@ -8,8 +8,6 @@ from models.enums import ResistanceType
 from models.exercise import ExerciseResponseData
 
 class WorkoutExerciseBase(SQLModel):
-    name: str
-    description: str
     exercise_uuid: str = Field(default=None, sa_column=Column(CHAR(32), ForeignKey("exercise.uuid", ondelete="CASCADE")))
     sets: int
     reps: int
@@ -36,8 +34,6 @@ class WorkoutExerciseCreateReq(WorkoutExerciseBase):
     pass
 
 class WorkoutExerciseUpdateReq(WorkoutExerciseBase):
-    name: str | None = None
-    description: str | None = None
     exercise_uuid: int | None = None
     sets: int | None = None
     reps: int | None = None
@@ -45,13 +41,20 @@ class WorkoutExerciseUpdateReq(WorkoutExerciseBase):
     resistance_weight: float | None = None
 
 class WorkoutExerciseResponseData(WorkoutExerciseBase):
-    uuid: UUID
-    exercise: ExerciseResponseData
+    uuid: str
+    name: str
+    description: str
+    exercise_uuid: str
+    sets: int
+    reps: int
+    resistance_type: ResistanceType
+    resistance_weight: float
+    target_muscles: list[str]
 
 class WorkoutExerciseResponse(SQLModel):
     data: WorkoutExerciseResponseData
     detail: str
     
 class WorkoutExerciseListResponse(SQLModel):
-    data: list[ExerciseResponseData] 
+    data: list[WorkoutExerciseResponseData] 
     detail: str
