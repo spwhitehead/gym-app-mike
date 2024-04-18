@@ -40,7 +40,7 @@ async def get_workout_exercise(workout_exercise_uuid: str, session: Session = De
 
 @router.post("/workout-exercises", response_model=WorkoutExerciseResponse, status_code=status.HTTP_201_CREATED)
 async def add_workout_exercise(workout_exercise_request: WorkoutExerciseCreateReq, session: Session = Depends(get_db)) -> WorkoutExerciseResponse:
-    exercise = session.exec(select(Exercise).where(Exercise.uuid == workout_exercise_request.exercise_uuid)).first()
+    exercise = session.exec(select(Exercise).where(Exercise.uuid == str(workout_exercise_request.exercise_uuid))).first()
     if not exercise:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Exercise UUID: {workout_exercise_request.exercise_uuid} not found.")
     workout_exercise = WorkoutExercise.model_validate(workout_exercise_request.model_dump())
