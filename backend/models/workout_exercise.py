@@ -43,16 +43,6 @@ class WorkoutExercise(WorkoutExerciseBase, table=True):
 
 class WorkoutExerciseCreateReq(WorkoutExerciseBase):
     exercise_uuid: UUID
-    
-    @field_validator('exercise_uuid', mode="before", check_fields=False)
-    def convert_str_to_UUID(cls, value: str) -> UUID:
-        if isinstance(value, str):
-            try:
-                return UUID(value)
-            except ValueError as e:
-                raise ValueError(f"UUID must be a valid UUID Str to convert to UUID. Value: {value} is of type {type(value)}, Error: {e}")
-        else:
-            return value
 
 class WorkoutExerciseUpdateReq(WorkoutExerciseBase):
     exercise_uuid: UUID | None = None
@@ -60,16 +50,6 @@ class WorkoutExerciseUpdateReq(WorkoutExerciseBase):
     reps: int | None = None
     resistance_type: ResistanceType | None = None
     resistance_weight: float | None = None
-
-    @field_validator('exercise_uuid', mode="before", check_fields=False)
-    def convert_str_to_UUID(cls, value: str) -> UUID:
-        if isinstance(value, str):
-            try:
-                return UUID(value)
-            except ValueError as e:
-                raise ValueError(f"UUID must be a valid UUID Str to convert to UUID. Value: {value} is of type {type(value)}, Error: {e}")
-        else:
-            return value
 
 class WorkoutExerciseResponseData(WorkoutExerciseBase):
     uuid: UUID

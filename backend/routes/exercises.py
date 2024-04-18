@@ -47,8 +47,8 @@ async def update_exercise(exercise_uuid: str, exercise_request: ExerciseUpdateRe
     exercise = session.exec(select(Exercise).where(Exercise.uuid == exercise_uuid)).first()
     if not exercise:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Exercise UUID: {exercise_uuid} not found.")
-    for key,value in exercise_request.model_dump(exclude_unset=True, exclude={"target_muscles"}).items():
-        setattr(exercise, key, value)
+    for attr,value in exercise_request.model_dump(exclude_unset=True, exclude={"target_muscles"}).items():
+        setattr(exercise, attr, value)
     if exercise_request.target_muscles is not None:
         exercise.target_muscles.clear()
         exercise.target_muscles.extend(
