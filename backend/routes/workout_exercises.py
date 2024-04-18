@@ -29,7 +29,7 @@ async def get_workout_exercises(session: Session = Depends(get_db)) -> WorkoutEx
     return WorkoutExerciseListResponse(data=data, detail="Workout Exercises fetched successfully.")
 
 @router.get("/workout-exercises/{workout_exercise_uuid}", response_model=WorkoutExerciseResponse, status_code=status.HTTP_200_OK)
-async def get_workout_exercise(workout_exercise_uuid: UUID, session: Session = Depends(get_db)) -> WorkoutExerciseResponse:
+async def get_workout_exercise(workout_exercise_uuid: str, session: Session = Depends(get_db)) -> WorkoutExerciseResponse:
     workout_exercise = session.exec(select(WorkoutExercise).where(WorkoutExercise.uuid == workout_exercise_uuid)).first()
     if not workout_exercise:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Workout Exercise UUID: {workout_exercise_uuid} not found.")
@@ -53,7 +53,7 @@ async def add_workout_exercise(workout_exercise_request: WorkoutExerciseCreateRe
     return WorkoutExerciseResponse(data=data, detail="Workout Exercise added successfully.")
 
 @router.put("/workout-exercises/{workout_exercise_uuid}", response_model=WorkoutExerciseResponse, status_code=status.HTTP_200_OK)
-async def update_workout_exercise(workout_exercise_uuid: UUID, workout_exercise_request: WorkoutExerciseUpdateReq):
+async def update_workout_exercise(workout_exercise_uuid: str, workout_exercise_request: WorkoutExerciseUpdateReq):
     with Session(bind=engine) as session:
         workout_exercise = session.exec(select(WorkoutExercise).where(WorkoutExercise.uuid == workout_exercise_uuid)).first()
         if not workout_exercise:
@@ -72,7 +72,7 @@ async def update_workout_exercise(workout_exercise_uuid: UUID, workout_exercise_
         return WorkoutExerciseResponse(data=data, detail="Workout Exercise updated successfully.")
 
 @router.delete("/workout-exercises/{workout_exercise_uuid}", status_code=status.HTTP_204_NO_CONTENT) 
-async def delete_workout_exercise(workout_exercise_uuid: UUID):
+async def delete_workout_exercise(workout_exercise_uuid: str):
     with Session(bind=engine) as session:
         workout = session.exec(select(WorkoutExercise).where(WorkoutExercise.uuid == workout_exercise_uuid)).first()
         if not workout:

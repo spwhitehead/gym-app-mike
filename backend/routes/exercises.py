@@ -25,7 +25,7 @@ async def get_exercises(session: Session = Depends(get_db)) -> ExerciseListRespo
     return ExerciseListResponse(data=data, detail="Exercises fetched successfully.")
 
 @router.get("/exercises/{exercise_uuid}", response_model=ExerciseResponse, status_code=status.HTTP_200_OK)
-async def get_exercise(exercise_uuid: UUID, session: Session = Depends(get_db)):
+async def get_exercise(exercise_uuid: str, session: Session = Depends(get_db)):
     exercise = session.exec(select(Exercise).where(Exercise.uuid == exercise_uuid)).first()
     if not exercise:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Exercise ID: {exercise_uuid} not found.")
@@ -43,7 +43,7 @@ async def add_exercise(exercise_request: ExerciseCreateReq, session: Session = D
     return ExerciseResponse(data=data, detail=f"Exercise added successfully.")
             
 @router.put("/exercises/{exercise_uuid}", response_model=ExerciseResponse, status_code=status.HTTP_200_OK) 
-async def update_exercise(exercise_uuid: UUID, exercise_request: ExerciseUpdateReq, session: Session = Depends(get_db)) -> ExerciseResponse:
+async def update_exercise(exercise_uuid: str, exercise_request: ExerciseUpdateReq, session: Session = Depends(get_db)) -> ExerciseResponse:
     exercise = session.exec(select(Exercise).where(Exercise.uuid == exercise_uuid)).first()
     if not exercise:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Exercise UUID: {exercise_uuid} not found.")
@@ -60,7 +60,7 @@ async def update_exercise(exercise_uuid: UUID, exercise_request: ExerciseUpdateR
     return ExerciseResponse(data=data, detail=f"Exercise updated successfully.")
 
 @router.delete("/exercises/{exercise_uuid}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_exercise(exercise_uuid: UUID, session: Session = Depends(get_db)):
+async def delete_exercise(exercise_uuid: str, session: Session = Depends(get_db)):
     exercise = session.exec(select(Exercise).where(Exercise.uuid == exercise_uuid)).first()
     if not exercise:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Exercise UUID: {exercise_uuid} not found.")
