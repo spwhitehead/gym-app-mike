@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from models.models import WeightUnits, HeightUnits
+from models.enums import WeightUnits, HeightUnits
 
 @dataclass
 class Settings:

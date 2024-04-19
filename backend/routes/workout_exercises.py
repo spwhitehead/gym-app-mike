@@ -1,7 +1,5 @@
-from uuid import UUID
-
 from fastapi import APIRouter, HTTPException, status, Depends
-from sqlmodel import Session, select, delete
+from sqlmodel import Session, select
 
 from db import engine, get_db
 from models.exercise import Exercise, ExerciseResponseData
@@ -20,16 +18,14 @@ async def get_workout_exercises(session: Session = Depends(get_db)) -> WorkoutEx
     workout_exercises = session.exec(select(WorkoutExercise)).all()
     data = []
     for workout_exercise in workout_exercises:
-        print(workout_exercise)
         exercise = session.exec(select(Exercise).where(Exercise.uuid == workout_exercise.exercise_uuid)).first()
         exercise_data = ExerciseResponseData.model_validate(exercise)
         data.append(WorkoutExerciseResponseData.model_validate(workout_exercise, update={"name":exercise_data.name, "description":exercise_data.description, "target_muscles":exercise_data.target_muscles}))
-    print(data)
-    return WorkoutExerciseListResponse(data=data, detail="Workout Exercises fetched successfully.")
+    return WorkoutExerciseListResponse(data=data, detail=f"{len(data)} workout exercises fetched successfully." if len(data) != 1 else f"{len(data)} workout exercise fetched successfully.")
 
 @router.get("/workout-exercises/{workout_exercise_uuid}", response_model=WorkoutExerciseResponse, status_code=status.HTTP_200_OK)
 async def get_workout_exercise(workout_exercise_uuid: str, session: Session = Depends(get_db)) -> WorkoutExerciseResponse:
-    workout_exercise = session.exec(select(WorkoutExercise).where(UUID(WorkoutExercise.uuid) == workout_exercise_uuid)).first()
+    workout_exercise = session.exec(select(WorkoutExercise).where(WorkoutExercise.uuid == workout_exercise_uuid)).first()
     if not workout_exercise:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Workout Exercise UUID: {workout_exercise_uuid} not found.")
     exercise = session.exec(select(Exercise).where(Exercise.uuid == workout_exercise.exercise_uuid)).first()
@@ -54,7 +50,6 @@ async def add_workout_exercise(workout_exercise_request: WorkoutExerciseCreateRe
 
 @router.put("/workout-exercises/{workout_exercise_uuid}", response_model=WorkoutExerciseResponse, status_code=status.HTTP_200_OK)
 async def update_workout_exercise(workout_exercise_uuid: str, workout_exercise_request: WorkoutExerciseUpdateReq, session: Session = Depends(get_db)):
-    #workout_exercise_request.exercise_uuid = str(workout_exercise_request.exercise_uuid)
     workout_exercise = session.exec(select(WorkoutExercise).where(WorkoutExercise.uuid == workout_exercise_uuid)).first()
     exercise = session.exec(select(Exercise).where(Exercise.uuid == workout_exercise.exercise_uuid)).first()
     if not workout_exercise:

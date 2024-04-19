@@ -1,11 +1,11 @@
 from uuid import UUID
 from uuid import uuid4 as new_uuid
 
+from sqlalchemy.orm import relationship
 from pydantic import field_validator
-from sqlmodel import SQLModel, Field, Enum as SQLEnum, Column, ForeignKey, CHAR
+from sqlmodel import SQLModel, Field, Enum as SQLEnum, Column, ForeignKey, CHAR, Relationship, Integer
 
 from models.enums import ResistanceType
-from models.exercise import ExerciseResponseData
 
 class WorkoutExerciseBase(SQLModel):
     sets: int
@@ -23,12 +23,12 @@ class WorkoutExerciseBase(SQLModel):
         except KeyError as e:
             raise ValueError(f"resistance_type must be one of: {valid_values}. Error: {str(e)}")
     
-    
-
 class WorkoutExercise(WorkoutExerciseBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     uuid: str | None = Field(default_factory=lambda: str(new_uuid()), sa_column=Column(CHAR(32), unique=True))
     exercise_uuid: str = Field(default=None, sa_column=Column(CHAR(32), ForeignKey("exercise.uuid", ondelete="CASCADE")))
+    workout_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("workout.id", ondelete="CASCADE")))
+    workout: 'Workout' = Relationship(back_populates="workout_exercises")
     
     @field_validator("uuid", "exercise_uuid", mode="before", check_fields=False)
     def convert_uuid_to_str(cls, value: UUID) -> str:
@@ -39,7 +39,6 @@ class WorkoutExercise(WorkoutExerciseBase, table=True):
                raise ValueError(f"UUID must be a valid UUID to convert to str. Value: {value} is of type {type(value)}, Error: {e}") 
         else:
             return value
-
 
 class WorkoutExerciseCreateReq(WorkoutExerciseBase):
     exercise_uuid: UUID
@@ -79,3 +78,6 @@ class WorkoutExerciseResponse(SQLModel):
 class WorkoutExerciseListResponse(SQLModel):
     data: list[WorkoutExerciseResponseData] 
     detail: str
+
+# Late import
+from models.workout import Workout 

@@ -1,8 +1,6 @@
-from uuid import uuid4 as new_uuid
-from uuid import UUID 
 
 from fastapi import APIRouter, HTTPException, status, Depends
-from sqlmodel import Session, select, insert, delete, update, text
+from sqlmodel import Session, select, delete
 
 
 from db import engine, get_db

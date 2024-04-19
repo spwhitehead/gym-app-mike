@@ -31,7 +31,7 @@ class ExerciseBase(SQLModel):
 class Exercise(ExerciseBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     uuid: str | None = Field(default_factory=lambda: str(new_uuid()), sa_column=Column(CHAR(32), unique=True))
-    target_muscles: list[ExerciseMuscleLink] = Relationship(sa_relationship=relationship("ExerciseMuscleLink", back_populates="exercise", cascade="all, delete, delete-orphan"))
+    target_muscles: list['ExerciseMuscleLink'] = Relationship(sa_relationship=relationship("ExerciseMuscleLink", back_populates="exercise", cascade="all, delete, delete-orphan"))
 
     @field_validator("uuid", mode="before", check_fields=False)
     def convert_uuid_to_str(cls, value: UUID) -> str:

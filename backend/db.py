@@ -3,7 +3,7 @@ from sqlite3 import Connection as SQLite3Connection
 from sqlalchemy import event
 from models.exercise import ExerciseMuscleLink, Exercise
 from models.workout_exercise import WorkoutExercise
-from models.workout import WorkoutExerciseLink, Workout
+from models.workout import Workout
 from models.user import User
 
 sqlite_file_name = "database.db"
