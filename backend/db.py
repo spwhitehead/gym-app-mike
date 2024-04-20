@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel, create_engine, Session
 from sqlite3 import Connection as SQLite3Connection
 from sqlalchemy import event
-from models.exercise import ExerciseMuscleLink, Exercise
+from models.exercise import ExerciseMajorMuscleLink, Exercise
 from models.workout_exercise import WorkoutExercise
 from models.workout import Workout
 from models.user import User

@@ -7,6 +7,7 @@ from sqlmodel import SQLModel, Field, Enum as SQLEnum, Column, ForeignKey, CHAR,
 
 from models.enums import ResistanceType
 
+
 class WorkoutExerciseBase(SQLModel):
     sets: int
     reps: int

@@ -6,13 +6,6 @@ from sqlalchemy.orm import relationship
 from sqlmodel import SQLModel, Field, Relationship, Column, Integer, ForeignKey, CHAR
 
 
-# class WorkoutExerciseLink(SQLModel, table=True):
-#     workout_id: int = Field(default=None, sa_column=Column(Integer, ForeignKey("workout.id", ondelete="CASCADE"), primary_key=True))
-#     workout_exercise_id: int = Field(default=None, sa_column=Column(Integer, ForeignKey("workoutexercise.id", ondelete="CASCADE"), primary_key=True))
-# 
-#     # Relationships
-#     workout: 'Workout' = Relationship(back_populates="workout_exercises")
-#     workout_exercise: 'WorkoutExercise' = Relationship(back_populates="workout_exercise_links")
 
 class WorkoutBase(SQLModel):
     name: str
