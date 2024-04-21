@@ -5,6 +5,7 @@ from models.exercise import ExerciseMajorMuscleLink, Exercise
 from models.workout_exercise import WorkoutExercise
 from models.workout import Workout
 from models.user import User
+from models.exercise_log import ExerciseLog
 
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///data/{sqlite_file_name}"

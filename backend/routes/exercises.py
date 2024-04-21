@@ -23,10 +23,10 @@ async def get_exercises(session: Session = Depends(get_db)) -> ExerciseListRespo
     return ExerciseListResponse(data=data, detail="Exercises fetched successfully.")
 
 @router.get("/exercises/{exercise_uuid}", response_model=ExerciseResponse, status_code=status.HTTP_200_OK)
-async def get_exercise(exercise_uuid: str, session: Session = Depends(get_db)):
+async def get_exercise(exercise_uuid: str, session: Session = Depends(get_db)) -> ExerciseResponse:
     exercise = session.exec(select(Exercise).where(Exercise.uuid == exercise_uuid)).first()
     if not exercise:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Exercise ID: {exercise_uuid} not found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Exercise UUID: {exercise_uuid} not found.")
     data = ExerciseResponseData.model_validate(exercise)
     return ExerciseResponse(data=data, detail="Exercise fetched successfully.")
 
@@ -53,9 +53,6 @@ async def update_exercise(exercise_uuid: str, exercise_request: ExerciseUpdateRe
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Exercise UUID: {exercise_uuid} not found.")
     for attr,value in exercise_request.model_dump(exclude_unset=True, exclude={"major_muscles", "specific_muscles"}).items():
         setattr(exercise, attr, value)
-    print(exercise)
-    print(exercise.major_muscles)
-    print(exercise.specific_muscles)
     if exercise_request.major_muscles is not None:
         exercise.major_muscles.clear()
         for major_muscle in exercise_request.major_muscles:

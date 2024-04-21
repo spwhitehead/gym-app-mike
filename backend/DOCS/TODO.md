@@ -1,10 +1,10 @@
-# Things to do:
+# Things to do
 
-## Description:
+## Description
 
 Create a Gym tracking app that tracks workouts and gives workout suggestions.
 
-## Models:
+## Models
 
 - Workout:
   - Exercise Name

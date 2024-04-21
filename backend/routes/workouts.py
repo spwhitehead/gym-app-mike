@@ -29,11 +29,9 @@ async def get_workout(workout_uuid: str, session: Session = Depends(get_db)) -> 
 @router.post("/workouts/", response_model=WorkoutResponse, status_code=status.HTTP_201_CREATED)
 async def create_workout(workout_request: WorkoutCreateReq, session: Session = Depends(get_db)) -> WorkoutResponse:
     workout = Workout.model_validate(workout_request.model_dump())
-    print(workout)
     session.add(workout)
     session.commit()
     session.refresh(workout)
-    print(workout)
     data = WorkoutResponseData.model_validate(workout)
     return WorkoutResponse(data=data, detail="Workout added successfully.")
 

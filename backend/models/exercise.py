@@ -44,6 +44,8 @@ class Exercise(ExerciseBase, table=True):
     major_muscles: list['ExerciseMajorMuscleLink'] = Relationship(sa_relationship=relationship("ExerciseMajorMuscleLink", back_populates="exercise", cascade="all, delete, delete-orphan"))
     specific_muscles: list['ExerciseSpecificMuscleLink'] = Relationship(sa_relationship=relationship("ExerciseSpecificMuscleLink", back_populates="exercise", cascade="all, delete, delete-orphan"))
 
+    exercise_logs: list['ExerciseLog'] = Relationship(back_populates="exercise")
+
     @field_validator("uuid", mode="before", check_fields=False)
     def convert_uuid_to_str(cls, value: UUID) -> str:
         if isinstance(value, UUID):
@@ -79,13 +81,13 @@ class ExerciseCreateReq(ExerciseBase):
     
     @field_validator("workout_category", mode="before", check_fields=False)
     def convert_str_to_workout_category(cls, value: str) -> WorkoutCategory:
-        valid_values = ', '.join(resistance_type.value for resistance_type in WorkoutCategory)
+        valid_values = ', '.join(workout_category.value for workout_category in WorkoutCategory)
         if not isinstance(value, str):
-            raise TypeError(f"resistance_type must be a string with a value of one of these items: {valid_values}")
+            raise TypeError(f"workout_category must be a string with a value of one of these items: {valid_values}")
         try:
             return WorkoutCategory[value.upper()]
         except KeyError as e:
-            raise ValueError(f"resistance_type must be one of: {valid_values}. Error: {str(e)}")
+            raise ValueError(f"workout_category must be one of: {valid_values}. Error: {str(e)}")
     
 class ExerciseUpdateReq(ExerciseBase):
     name: str | None = None
@@ -166,3 +168,4 @@ class ExerciseListResponse(SQLModel):
     data: list[ExerciseResponseData]
     detail: str
 
+from models.exercise_log import ExerciseLog
