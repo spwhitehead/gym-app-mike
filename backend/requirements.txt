@@ -1,3 +1,7 @@
 uvicorn
 fastapi
 sqlmodel
+alembic
+pytest
+pytest-spec
+httpx

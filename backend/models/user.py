@@ -5,6 +5,7 @@ from uuid import uuid4 as new_uuid
 from pydantic import field_validator
 from sqlmodel import SQLModel, Field, Enum as SQLEnum, Column, CHAR
 
+from models.utility import GUID
 from models.enums import Gender
 
 class UserBase(SQLModel):
@@ -27,7 +28,7 @@ class UserBase(SQLModel):
 
 class User(UserBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    uuid: str | None = Field(default_factory=lambda: str(new_uuid()), sa_column=Column(CHAR(32), unique=True))
+    uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True))
 
 class UserCreateReq(UserBase):
     pass
@@ -42,15 +43,15 @@ class UserUpdateReq(UserBase):
 class UserResponseData(UserBase):
     uuid: UUID
 
-    @field_validator('uuid', mode="before", check_fields=False)
-    def convert_str_to_UUID(cls, value: str) -> UUID:
-        if isinstance(value, str):
-            try:
-                return UUID(value)
-            except ValueError as e:
-                raise ValueError(f"UUID must be a valid UUID Str to convert to UUID. Value: {value} is of type {type(value)}, Error: {e}")
-        else:
-            return value
+    # @field_validator('uuid', mode="before", check_fields=False)
+    # def convert_str_to_UUID(cls, value: str) -> UUID:
+    #     if isinstance(value, str):
+    #         try:
+    #             return UUID(value)
+    #         except ValueError as e:
+    #             raise ValueError(f"UUID must be a valid UUID Str to convert to UUID. Value: {value} is of type {type(value)}, Error: {e}")
+    #     else:
+    #         return value
     
 class UserResponse(SQLModel):
     data: UserResponseData

@@ -59,6 +59,8 @@ class ResistanceType(str, Enum):
     BARBELL = "Barbell"
     BAND = "Band"
     BODYWEIGHT = "Bodyweight"
+    WEIGHT_STACK_MACHINE ="Weight Stack Machine"
+    CABLE_MACHINE = "Cable Machine"
     
 class BandColor(str, Enum):
     YELLOW = "yellow"

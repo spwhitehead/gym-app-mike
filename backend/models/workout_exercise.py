@@ -6,6 +6,7 @@ from pydantic import field_validator
 from sqlmodel import SQLModel, Field, Enum as SQLEnum, Column, ForeignKey, CHAR, Relationship, Integer
 
 from models.enums import ResistanceType
+from models.utility import GUID
 
 
 class WorkoutExerciseBase(SQLModel):
@@ -26,20 +27,20 @@ class WorkoutExerciseBase(SQLModel):
     
 class WorkoutExercise(WorkoutExerciseBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    uuid: str | None = Field(default_factory=lambda: str(new_uuid()), sa_column=Column(CHAR(32), unique=True))
-    exercise_uuid: str = Field(default=None, sa_column=Column(CHAR(32), ForeignKey("exercise.uuid", ondelete="CASCADE")))
+    uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True))
+    exercise_uuid: UUID = Field(default=None, sa_column=Column(GUID(), ForeignKey("exercise.uuid", ondelete="CASCADE")))
     workout_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("workout.id", ondelete="CASCADE")))
     workout: 'Workout' = Relationship(back_populates="workout_exercises")
     
-    @field_validator("uuid", "exercise_uuid", mode="before", check_fields=False)
-    def convert_uuid_to_str(cls, value: UUID) -> str:
-        if isinstance(value, UUID):
-            try:
-                return str(value)
-            except ValueError as e:
-               raise ValueError(f"UUID must be a valid UUID to convert to str. Value: {value} is of type {type(value)}, Error: {e}") 
-        else:
-            return value
+    # @field_validator("uuid", "exercise_uuid", mode="before", check_fields=False)
+    # def convert_uuid_to_str(cls, value: UUID) -> str:
+    #     if isinstance(value, UUID):
+    #         try:
+    #             return str(value)
+    #         except ValueError as e:
+    #            raise ValueError(f"UUID must be a valid UUID to convert to str. Value: {value} is of type {type(value)}, Error: {e}") 
+    #     else:
+    #         return value
 
 class WorkoutExerciseCreateReq(WorkoutExerciseBase):
     exercise_uuid: UUID
@@ -62,15 +63,15 @@ class WorkoutExerciseResponseData(WorkoutExerciseBase):
     resistance_weight: float
     target_muscles: list[str]
 
-    @field_validator('uuid', 'exercise_uuid', mode="before", check_fields=False)
-    def convert_str_to_UUID(cls, value: str) -> UUID:
-        if isinstance(value, str):
-            try:
-                return UUID(value)
-            except ValueError as e:
-                raise ValueError(f"UUID must be a valid UUID Str to convert to UUID. Value: {value} is of type {type(value)}, Error: {e}")
-        else:
-            return value
+    # @field_validator('uuid', 'exercise_uuid', mode="before", check_fields=False)
+    # def convert_str_to_UUID(cls, value: str) -> UUID:
+    #     if isinstance(value, str):
+    #         try:
+    #             return UUID(value)
+    #         except ValueError as e:
+    #             raise ValueError(f"UUID must be a valid UUID Str to convert to UUID. Value: {value} is of type {type(value)}, Error: {e}")
+    #     else:
+    #         return value
 
 class WorkoutExerciseResponse(SQLModel):
     data: WorkoutExerciseResponseData

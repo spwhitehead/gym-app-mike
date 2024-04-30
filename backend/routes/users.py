@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import APIRouter, HTTPException, status, Depends
 from sqlmodel import Session, select
 
@@ -17,8 +19,8 @@ async def get_users(session: Session = Depends(get_db)) -> UserListResponse:
     data = [UserResponseData.model_validate(user) for user in users]
     return UserListResponse(data=data, detail=f"{len(data)} users fetched successfully." if len(data) != 1 else f"{len(data)} user fetched successfully.")
 
-@router.get("/users/{user_uuid}", response_model=UserResponse, status_code=status.HTTP_200_OK)
-async def get_user(user_uuid: str, session: Session = Depends(get_db)) -> UserResponse:
+@router.get("/users/{user_uuid:uuid}", response_model=UserResponse, status_code=status.HTTP_200_OK)
+async def get_user(user_uuid: UUID, session: Session = Depends(get_db)) -> UserResponse:
     user = session.exec(select(User).where(User.uuid == user_uuid)).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User UUID: {user_uuid} not found.")
@@ -35,8 +37,8 @@ async def add_user(create_user_request: UserCreateReq, session: Session = Depend
     data = UserResponseData.model_validate(user)
     return UserResponse(data=data, detail="New User has been added.")
 
-@router.put("/users/{user_uuid}", response_model=UserResponse, status_code=status.HTTP_200_OK)
-async def update_user(user_uuid: str, update_user_request: UserUpdateReq, session: Session = Depends(get_db)) -> UserResponse:
+@router.put("/users/{user_uuid:uuid}", response_model=UserResponse, status_code=status.HTTP_200_OK)
+async def update_user(user_uuid: UUID, update_user_request: UserUpdateReq, session: Session = Depends(get_db)) -> UserResponse:
     user = session.exec(select(User).where(User.uuid == user_uuid)).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User UUID: {user_uuid} not found.")
@@ -47,8 +49,8 @@ async def update_user(user_uuid: str, update_user_request: UserUpdateReq, sessio
     data = UserResponseData.model_validate(user)
     return UserResponse(data=data, detail="User updated.")
    
-@router.delete("/users/{user_uuid}", status_code=status.HTTP_204_NO_CONTENT) 
-async def delete_user(user_uuid: str, session: Session = Depends(get_db)):
+@router.delete("/users/{user_uuid:uuid}", status_code=status.HTTP_204_NO_CONTENT) 
+async def delete_user(user_uuid: UUID, session: Session = Depends(get_db)):
     user = session.exec(select(User).where(User.uuid == user_uuid)).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User UUID: {user_uuid} not found.")

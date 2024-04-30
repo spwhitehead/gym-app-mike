@@ -6,7 +6,8 @@ from sqlalchemy.orm import relationship
 
 from sqlmodel import SQLModel, Field, Enum as SQLEnum, Column, Relationship, Integer, ForeignKey, CHAR
 
-from models.enums import WorkoutCategory, MajorMuscleGroup, SpecificMuscleGroup, MovementCategory
+from models.utility import GUID
+from models.enums import WorkoutCategory, MajorMuscleGroup, SpecificMuscleGroup, MovementCategory, ResistanceType
 
 class ExerciseMajorMuscleLink(SQLModel, table=True):
     id: int | None = Field(default= None, primary_key=True)
@@ -15,6 +16,13 @@ class ExerciseMajorMuscleLink(SQLModel, table=True):
 
     exercise: 'Exercise' = Relationship(sa_relationship=relationship("Exercise", back_populates="major_muscles"))
 
+    def __hash__(self):
+        return hash((self.exercise_id, self.major_muscle_group))
+    
+    def __eq__(self, other):
+        if isinstance(other, ExerciseMajorMuscleLink):
+            return (self.exercise_id == other.exercise_id and self.major_muscle_group == other.major_muscle_group)
+
 class ExerciseSpecificMuscleLink(SQLModel, table=True):
     id: int | None = Field(default= None, primary_key=True)
     exercise_id: int = Field(default=None, sa_column=Column(Integer, ForeignKey("exercise.id", ondelete="CASCADE")))
@@ -22,39 +30,68 @@ class ExerciseSpecificMuscleLink(SQLModel, table=True):
 
     exercise: 'Exercise' = Relationship(sa_relationship=relationship("Exercise", back_populates="specific_muscles"))
 
+    def __hash__(self):
+        return hash((self.exercise_id, self.specific_muscle_group))
+    
+    def __eq__(self, other):
+        if isinstance(other, ExerciseSpecificMuscleLink):
+            return (self.exercise_id == other.exercise_id and self.specific_muscle_group == other.specific_muscle_group)
+
 class ExerciseBase(SQLModel):
     name: str
     description: str
     workout_category: WorkoutCategory = Field(sa_column=Column(SQLEnum(WorkoutCategory)))
     movement_category: MovementCategory = Field(sa_column=Column(SQLEnum(MovementCategory)))
+    resistance_type: ResistanceType = Field(sa_column=Column(SQLEnum(ResistanceType)))
     
     @field_validator("movement_category", mode="before", check_fields=False)
-    def convert_str_to_workout_category(cls, value: str) -> MovementCategory:
-        valid_values = ', '.join(resistance_type.value for resistance_type in MovementCategory)
+    def convert_str_to_movment_category(cls, value: str) -> MovementCategory:
+        valid_values = ', '.join(movement_category.value for movement_category in MovementCategory)
         if not isinstance(value, str):
-            raise TypeError(f"resistance_type must be a string with a value of one of these items: {valid_values}")
+            raise TypeError(f"movement_category must be a string with a value of one of these items: {valid_values}")
         try:
             return MovementCategory[value.upper()]
         except KeyError as e:
+            raise ValueError(f"movement_category must be one of: {valid_values}. Error: {str(e)}")
+    
+    @field_validator("workout_category", mode="before", check_fields=False)
+    def convert_str_to_workout_category(cls, value: str) -> WorkoutCategory:
+        valid_values = ', '.join(workout_category.value for workout_category in WorkoutCategory)
+        if not isinstance(value, str):
+            raise TypeError(f"resistance_type must be a string with a value of one of these items: {valid_values}")
+        try:
+            return WorkoutCategory[value.upper()]
+        except KeyError as e:
             raise ValueError(f"resistance_type must be one of: {valid_values}. Error: {str(e)}")
+        
+    @field_validator("resistance_type", mode="before", check_fields=False)
+    def convert_str_to_resistance_type(cls, value: str) -> ResistanceType:
+        valid_values = ', '.join(resistance_type.value for resistance_type in ResistanceType)
+        if not isinstance(value, str):
+            raise TypeError(f"resistance_type must be a string with a value of one of these items: {valid_values}")
+        try:
+            return ResistanceType["_".join(value.upper().split(" "))]
+        except KeyError as e:
+            raise ValueError(f"resistance_type must be one of these values: {valid_values}. Error: {str(e)}")
+    
 
 class Exercise(ExerciseBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    uuid: str | None = Field(default_factory=lambda: str(new_uuid()), sa_column=Column(CHAR(32), unique=True))
-    major_muscles: list['ExerciseMajorMuscleLink'] = Relationship(sa_relationship=relationship("ExerciseMajorMuscleLink", back_populates="exercise", cascade="all, delete, delete-orphan"))
-    specific_muscles: list['ExerciseSpecificMuscleLink'] = Relationship(sa_relationship=relationship("ExerciseSpecificMuscleLink", back_populates="exercise", cascade="all, delete, delete-orphan"))
-
+    uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True))
+    
+    major_muscles: set['ExerciseMajorMuscleLink'] = Relationship(sa_relationship=relationship("ExerciseMajorMuscleLink", back_populates="exercise", cascade="all, delete, delete-orphan", collection_class=set))
+    specific_muscles: set['ExerciseSpecificMuscleLink'] = Relationship(sa_relationship=relationship("ExerciseSpecificMuscleLink", back_populates="exercise", cascade="all, delete, delete-orphan", collection_class=set))
     exercise_logs: list['ExerciseLog'] = Relationship(back_populates="exercise")
 
-    @field_validator("uuid", mode="before", check_fields=False)
-    def convert_uuid_to_str(cls, value: UUID) -> str:
-        if isinstance(value, UUID):
-            try:
-                return str(value)
-            except ValueError as e:
-               raise ValueError(f"UUID must be a valid UUID to convert to str. Value: {value} is of type {type(value)}, Error: {e}") 
-        else:
-            return value
+    # @field_validator("uuid", mode="before", check_fields=False)
+    # def convert_uuid_to_str(cls, value: UUID) -> str:
+    #     if isinstance(value, UUID):
+    #         try:
+    #             return str(value)
+    #         except ValueError as e:
+    #            raise ValueError(f"UUID must be a valid UUID to convert to str. Value: {value} is of type {type(value)}, Error: {e}") 
+    #     else:
+    #         return value
 class ExerciseCreateReq(ExerciseBase):
     major_muscles: list[MajorMuscleGroup]
     specific_muscles: list[SpecificMuscleGroup]
@@ -71,27 +108,21 @@ class ExerciseCreateReq(ExerciseBase):
 
     @field_validator("specific_muscles", mode="before", check_fields=False)
     def convert_str_to_specific_muscle_group(cls, values: list[str]) -> list[SpecificMuscleGroup]:
+        valid_values = ', '.join(muscle.value for muscle in SpecificMuscleGroup)
         if not isinstance(values, list):
-            raise TypeError("specific_muscles must be a list of Msucle Group values.") 
+            raise TypeError(f"specific_muscles must be a list of Msucle Group values with any of these valid values: {valid_values}.") 
         try:
             return [SpecificMuscleGroup["_".join(item.upper().split(" "))] for item in values]
         except KeyError as e:
-            valid_values = ', '.join(muscle.value for muscle in SpecificMuscleGroup)
             raise ValueError(f"Each item in 'specific_muscles' must be of one of: {valid_values}. Error: {str(e)}")
     
-    @field_validator("workout_category", mode="before", check_fields=False)
-    def convert_str_to_workout_category(cls, value: str) -> WorkoutCategory:
-        valid_values = ', '.join(workout_category.value for workout_category in WorkoutCategory)
-        if not isinstance(value, str):
-            raise TypeError(f"workout_category must be a string with a value of one of these items: {valid_values}")
-        try:
-            return WorkoutCategory[value.upper()]
-        except KeyError as e:
-            raise ValueError(f"workout_category must be one of: {valid_values}. Error: {str(e)}")
-    
-class ExerciseUpdateReq(ExerciseBase):
+
+class ExercisePatchReq(ExerciseBase):
     name: str | None = None
     description: str | None = None
+    workout_category: WorkoutCategory | None = None
+    movement_category: MovementCategory | None = None
+    resistance_type: ResistanceType | None = None
     major_muscles: list[MajorMuscleGroup] = None
     specific_muscles: list[SpecificMuscleGroup] = None
     
@@ -124,8 +155,9 @@ class ExerciseUpdateReq(ExerciseBase):
             return WorkoutCategory[value.upper()]
         except KeyError as e:
             raise ValueError(f"resistance_type must be one of: {valid_values}. Error: {str(e)}")
-    
-    
+     
+
+
 class ExerciseResponseData(ExerciseBase):
     uuid: UUID
     major_muscles: list[str]
@@ -150,15 +182,15 @@ class ExerciseResponseData(ExerciseBase):
         return target_muscles
     
     
-    @field_validator('uuid', mode="before", check_fields=False)
-    def convert_str_to_UUID(cls, value: str) -> UUID:
-        if isinstance(value, str):
-            try:
-                return UUID(value)
-            except ValueError as e:
-                raise ValueError(f"UUID must be a valid UUID Str to convert to UUID. Value: {value} is of type {type(value)}, Error: {e}")
-        else:
-            return value
+    # @field_validator('uuid', mode="before", check_fields=False)
+    # def convert_str_to_UUID(cls, value: str) -> UUID:
+    #     if isinstance(value, str):
+    #         try:
+    #             return UUID(value)
+    #         except ValueError as e:
+    #             raise ValueError(f"UUID must be a valid UUID Str to convert to UUID. Value: {value} is of type {type(value)}, Error: {e}")
+    #     else:
+    #         return value
 
 class ExerciseResponse(SQLModel):
     data: ExerciseResponseData
