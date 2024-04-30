@@ -3,12 +3,14 @@ from uuid import UUID
 from uuid import uuid4 as new_uuid
 
 from pydantic import field_validator
-from sqlmodel import SQLModel, Field, Enum as SQLEnum, Column, CHAR
+from sqlmodel import SQLModel, Field, Enum as SQLEnum, Column, CHAR, Relationship
 
-from models.utility import GUID
+from models.utility import GUID, HashedPassword
 from models.enums import Gender
 
 class UserBase(SQLModel):
+    username: str = Field(unique=True)
+    hashed_password: str = Field(sa_column=Column(HashedPassword())) 
     first_name: str
     last_name: str
     birthday: date
@@ -30,6 +32,14 @@ class User(UserBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True))
 
+    class Config:
+        arbitrary_types_allowed = True
+        json_encoders = {
+            HashedPassword: lambda v: str(v)
+        }
+    
+    exercise_logs: list['ExerciseLog'] = Relationship(back_populates="user")
+
 class UserCreateReq(UserBase):
     pass
 class UserUpdateReq(UserBase):
@@ -42,16 +52,6 @@ class UserUpdateReq(UserBase):
 
 class UserResponseData(UserBase):
     uuid: UUID
-
-    # @field_validator('uuid', mode="before", check_fields=False)
-    # def convert_str_to_UUID(cls, value: str) -> UUID:
-    #     if isinstance(value, str):
-    #         try:
-    #             return UUID(value)
-    #         except ValueError as e:
-    #             raise ValueError(f"UUID must be a valid UUID Str to convert to UUID. Value: {value} is of type {type(value)}, Error: {e}")
-    #     else:
-    #         return value
     
 class UserResponse(SQLModel):
     data: UserResponseData
@@ -60,3 +60,5 @@ class UserResponse(SQLModel):
 class UserListResponse(SQLModel):
     data: list[UserResponseData]
     detail: str
+
+from models.exercise_log import ExerciseLog, ExerciseLogResponse

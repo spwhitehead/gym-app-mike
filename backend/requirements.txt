@@ -5,3 +5,4 @@ alembic
 pytest
 pytest-spec
 httpx
+bcrypt
