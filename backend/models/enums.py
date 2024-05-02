@@ -1,5 +1,8 @@
 from enum import Enum
 
+# class WorkoutCategoryTable(SQLModel, table=True):
+#     id: int
+#     name: str
 class WorkoutCategory(str, Enum):
     UPPER = "Upper"
     LOWER = "Lower"
@@ -13,13 +16,7 @@ class MajorMuscleGroup(str, Enum):
     CORE = "Core"
     LEGS = "Legs"
     HIPS = "Hips"
-    QUADRICEPS = "Quadriceps"
-    HAMSTRINGS = "Hamstrings"
-    CALVES = "Calves"
-    GLUTES = "Glutes"
-    ABDOMINALS = "Abdominals"
-    FOREARMS = "Forearms" 
-    OBLIQUES = "Obliques"
+    NECK = "Neck"
 
 class SpecificMuscleGroup(str, Enum):
     UNSPECIFIED = "Unspecified"
@@ -42,6 +39,9 @@ class SpecificMuscleGroup(str, Enum):
     ADDUCTORS = "Adductors"
     ABDUCTORS = "Abductors"
     HIP_FLEXORS = "Hip Flexors"
+    ABDOMINALS = "Abdominals"
+    OBLIQUES = "Obliques"
+    
 class MovementCategory(str, Enum):
     PRESS = "Press"
     PULL = "Pull"
@@ -54,13 +54,19 @@ class MovementCategory(str, Enum):
     HINGE = "Hinge"
     ISOMETRIC = "Isometric"
 
-class ResistanceType(str, Enum):
+class Equipment(str, Enum):
     DUMBBELL = "Dumbbell"
     BARBELL = "Barbell"
     BAND = "Band"
     BODYWEIGHT = "Bodyweight"
     WEIGHT_STACK_MACHINE ="Weight Stack Machine"
     CABLE_MACHINE = "Cable Machine"
+    SMITH_MACHINE = "Smith Machine"
+    MEDICINE_BALL = "Medicine Ball"
+    KETTLEBELL = "Kettlebell"
+    EZ_BARBELL = "Ez Barbell"
+    ROPE = "Rope"
+    TRAP_BAR = "Trap Bar"
     
 class BandColor(str, Enum):
     YELLOW = "yellow"

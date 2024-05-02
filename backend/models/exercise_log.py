@@ -7,7 +7,7 @@ from pydantic import field_validator
 from sqlmodel import SQLModel, Field, Enum as SQLEnum, Column, Relationship, Integer, ForeignKey, CHAR, String
 
 from models.utility import GUID
-from models.enums import ResistanceType
+from models.unique_data import Equipment
     
 
 class ExerciseLogBase(SQLModel):
@@ -16,17 +16,6 @@ class ExerciseLogBase(SQLModel):
     exercise_uuid: UUID | None = Field(default=None, sa_column=Column(GUID(), ForeignKey("exercise.uuid", ondelete="CASCADE")))
     reps: int
     weight: float
-
-    @field_validator("resistance_type", mode="before", check_fields=False)
-    def convert_str_to_resistance_type(cls, value: str) -> ResistanceType:
-        valid_values = ', '.join(resistance_type.value for resistance_type in ResistanceType)
-        if not isinstance(value, str):
-            raise TypeError(f"resistance_type must be a string with a value of one of these items: {valid_values}")
-        try:
-            return ResistanceType[value.upper()]
-        except KeyError as e:
-            raise ValueError(f"resistance_type must be one of: {valid_values}. Error: {str(e)}")
-    
 
 class ExerciseLog(ExerciseLogBase, table=True): 
     id: int | None = Field(default=None, primary_key=True)

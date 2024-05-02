@@ -7,138 +7,66 @@ from sqlalchemy.orm import relationship
 from sqlmodel import SQLModel, Field, Enum as SQLEnum, Column, Relationship, Integer, ForeignKey, CHAR
 
 from models.utility import GUID
-from models.enums import WorkoutCategory, MajorMuscleGroup, SpecificMuscleGroup, MovementCategory, ResistanceType
-
-class ExerciseMajorMuscleLink(SQLModel, table=True):
-    id: int | None = Field(default= None, primary_key=True)
-    exercise_id: int = Field(default=None, sa_column=Column(Integer, ForeignKey("exercise.id", ondelete="CASCADE")))
-    major_muscle_group: MajorMuscleGroup = Field(sa_column=Column(SQLEnum(MajorMuscleGroup)))
-
-    exercise: 'Exercise' = Relationship(sa_relationship=relationship("Exercise", back_populates="major_muscles"))
-
-    def __hash__(self):
-        return hash((self.exercise_id, self.major_muscle_group))
-    
-    def __eq__(self, other):
-        if isinstance(other, ExerciseMajorMuscleLink):
-            return (self.exercise_id == other.exercise_id and self.major_muscle_group == other.major_muscle_group)
 
 class ExerciseSpecificMuscleLink(SQLModel, table=True):
     id: int | None = Field(default= None, primary_key=True)
-    exercise_id: int = Field(default=None, sa_column=Column(Integer, ForeignKey("exercise.id", ondelete="CASCADE")))
-    specific_muscle_group: SpecificMuscleGroup = Field(sa_column=Column(SQLEnum(SpecificMuscleGroup)))
+    exercise_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("exercise.id", ondelete="CASCADE")))
+    specific_muscle_id: int | None = Field(default=None, foreign_key="specificmuscle.id")
 
-    exercise: 'Exercise' = Relationship(sa_relationship=relationship("Exercise", back_populates="specific_muscles"))
+    exercise: 'Exercise' = Relationship(back_populates="specific_muscles")
+    specific_muscle: 'SpecificMuscle' = Relationship(back_populates="exercise_links")
 
     def __hash__(self):
-        return hash((self.exercise_id, self.specific_muscle_group))
+        return hash((self.exercise_id, self.specific_muscle_id))
     
     def __eq__(self, other):
         if isinstance(other, ExerciseSpecificMuscleLink):
-            return (self.exercise_id == other.exercise_id and self.specific_muscle_group == other.specific_muscle_group)
+            return (self.exercise_id == other.exercise_id and self.specific_muscle_id == other.specific_muscle_id)
 
 class ExerciseBase(SQLModel):
-    name: str
-    description: str
-    workout_category: WorkoutCategory = Field(sa_column=Column(SQLEnum(WorkoutCategory)))
-    movement_category: MovementCategory = Field(sa_column=Column(SQLEnum(MovementCategory)))
-    resistance_type: ResistanceType = Field(sa_column=Column(SQLEnum(ResistanceType)))
-    
-    @field_validator("movement_category", mode="before", check_fields=False)
-    def convert_str_to_movment_category(cls, value: str) -> MovementCategory:
-        valid_values = ', '.join(movement_category.value for movement_category in MovementCategory)
-        if not isinstance(value, str):
-            raise TypeError(f"movement_category must be a string with a value of one of these items: {valid_values}")
-        try:
-            return MovementCategory[value.upper()]
-        except KeyError as e:
-            raise ValueError(f"movement_category must be one of: {valid_values}. Error: {str(e)}")
-    
-    @field_validator("workout_category", mode="before", check_fields=False)
-    def convert_str_to_workout_category(cls, value: str) -> WorkoutCategory:
-        valid_values = ', '.join(workout_category.value for workout_category in WorkoutCategory)
-        if not isinstance(value, str):
-            raise TypeError(f"resistance_type must be a string with a value of one of these items: {valid_values}")
-        try:
-            return WorkoutCategory[value.upper()]
-        except KeyError as e:
-            raise ValueError(f"resistance_type must be one of: {valid_values}. Error: {str(e)}")
-        
-    @field_validator("resistance_type", mode="before", check_fields=False)
-    def convert_str_to_resistance_type(cls, value: str) -> ResistanceType:
-        valid_values = ', '.join(resistance_type.value for resistance_type in ResistanceType)
-        if not isinstance(value, str):
-            raise TypeError(f"resistance_type must be a string with a value of one of these items: {valid_values}")
-        try:
-            return ResistanceType["_".join(value.upper().split(" "))]
-        except KeyError as e:
-            raise ValueError(f"resistance_type must be one of these values: {valid_values}. Error: {str(e)}")
-    
+    name: str = "Bench Press"
+    description: str = "Bench Press Description"
 
 class Exercise(ExerciseBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True))
+    workout_category_id: int | None = Field(default=None, foreign_key="workoutcategory.id")
+    movement_category_id: int | None = Field(default=None, foreign_key="movementcategory.id")
+    equipment_id: int | None = Field(default=None, foreign_key="equipment.id")
+    major_muscle_id: int | None = Field(default=None, foreign_key="majormuscle.id")
     
-    major_muscles: set['ExerciseMajorMuscleLink'] = Relationship(sa_relationship=relationship("ExerciseMajorMuscleLink", back_populates="exercise", cascade="all, delete, delete-orphan", collection_class=set))
+    workout_category: 'WorkoutCategory' = Relationship(back_populates="exercises")
+    movement_category: 'MovementCategory' = Relationship(back_populates="exercises")
+    major_muscle: 'MajorMuscle' = Relationship(back_populates="exercises")
+    equipment: 'Equipment' = Relationship(back_populates='exercises')
+
     specific_muscles: set['ExerciseSpecificMuscleLink'] = Relationship(sa_relationship=relationship("ExerciseSpecificMuscleLink", back_populates="exercise", cascade="all, delete, delete-orphan", collection_class=set))
     exercise_logs: list['ExerciseLog'] = Relationship(back_populates="exercise")
 
-class ExerciseBaseExtension(ExerciseBase):
-    major_muscles: set[MajorMuscleGroup]
-    specific_muscles: set[SpecificMuscleGroup]
+class ExerciseCreateReq(ExerciseBase):
+    workout_category: str = "Upper"
+    movement_category: str = "Press"
+    equipment: str = "Barbell"
+    major_muscle: str = "Chest"
+    specific_muscles: list[str] = ["Middle Chest", "Triceps"]
 
-    @field_validator("major_muscles", mode="before", check_fields=False)
-    def convert_str_to_major_muscle_group(cls, values: list[str]) -> list[MajorMuscleGroup]:
-        if not isinstance(values, list):
-            raise TypeError("major_muscles must be a list of Msucle Group values.") 
-        try:
-            return [MajorMuscleGroup[item.upper()] for item in values]
-        except KeyError as e:
-            valid_values = ', '.join(muscle.value for muscle in MajorMuscleGroup)
-            raise ValueError(f"Each item in 'major_muscles' must be of one of: {valid_values}. Error: {str(e)}")
-
-    @field_validator("specific_muscles", mode="before", check_fields=False)
-    def convert_str_to_specific_muscle_group(cls, values: list[str]) -> list[SpecificMuscleGroup]:
-        valid_values = ', '.join(muscle.value for muscle in SpecificMuscleGroup)
-        if not isinstance(values, list):
-            raise TypeError(f"specific_muscles must be a list of Msucle Group values with any of these valid values: {valid_values}.") 
-        try:
-            return [SpecificMuscleGroup["_".join(item.upper().split(" "))] for item in values]
-        except KeyError as e:
-            raise ValueError(f"Each item in 'specific_muscles' must be of one of: {valid_values}. Error: {str(e)}")
-    
-class ExerciseCreateReq(ExerciseBaseExtension):
-    pass
-class ExercisePatchReq(ExerciseBaseExtension):
+class ExercisePatchReq(ExerciseBase):
     name: str | None = None
     description: str | None = None
-    workout_category: WorkoutCategory | None = None
-    movement_category: MovementCategory | None = None
-    resistance_type: ResistanceType | None = None
-    major_muscles: list[MajorMuscleGroup] = None
-    specific_muscles: list[SpecificMuscleGroup] = None
+    workout_category: str | None = None
+    movement_category: str | None = None
+    equipment: str | None = None
+    major_muscle: str | None = None
+    specific_muscles: list[str] | None = None
 
-class ExerciseResponseData(ExerciseBaseExtension):
+class ExerciseResponseData(ExerciseBase):
     uuid: UUID
+    workout_category: str
+    movement_category: str
+    equipment: str
+    major_muscle: str
+    specific_muscles: list[str]
 
-    @field_validator('specific_muscles', mode="before", check_fields=False)
-    def extract_specific_muscle_names(cls, value: list[ExerciseSpecificMuscleLink]) -> list[str]:
-        target_muscles: list[str] = []
-        for link in value:
-            if isinstance(link, ExerciseSpecificMuscleLink):
-                print(link.specific_muscle_group.value)
-                target_muscles.append(link.specific_muscle_group.value)
-        return target_muscles
-    
-    @field_validator('major_muscles', mode="before", check_fields=False)
-    def extract_major_muscle_names(cls, value: list[ExerciseMajorMuscleLink]) -> list[str]:
-        target_muscles: list[str] = []
-        for link in value:
-            if isinstance(link, ExerciseMajorMuscleLink):
-                print(link.major_muscle_group.value)
-                target_muscles.append(link.major_muscle_group.value)
-        return target_muscles
-    
 class ExerciseResponse(SQLModel):
     data: ExerciseResponseData
     detail: str
@@ -148,3 +76,4 @@ class ExerciseListResponse(SQLModel):
     detail: str
 
 from models.exercise_log import ExerciseLog
+from models.unique_data import MajorMuscle, SpecificMuscle, MovementCategory, WorkoutCategory, Equipment

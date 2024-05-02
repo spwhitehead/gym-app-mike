@@ -5,23 +5,23 @@ from sqlalchemy.orm import relationship
 from pydantic import field_validator
 from sqlmodel import SQLModel, Field, Enum as SQLEnum, Column, ForeignKey, CHAR, Relationship, Integer
 
-from models.enums import ResistanceType
+from models.enums import Equipment
 from models.utility import GUID
 
 
 class WorkoutExerciseBase(SQLModel):
     sets: int
     reps: int
-    resistance_type: ResistanceType = Field(sa_column=Column(SQLEnum(ResistanceType)))
+    resistance_type: Equipment = Field(sa_column=Column(SQLEnum(Equipment)))
     resistance_weight: float  
     
     @field_validator("resistance_type", mode="before", check_fields=False)
-    def convert_str_to_resistance_type(cls, value: str) -> ResistanceType:
-        valid_values = ', '.join(resistance_type.value for resistance_type in ResistanceType)
+    def convert_str_to_resistance_type(cls, value: str) -> Equipment:
+        valid_values = ', '.join(resistance_type.value for resistance_type in Equipment)
         if not isinstance(value, str):
             raise TypeError(f"resistance_type must be a string with a value of one of these items: {valid_values}")
         try:
-            return ResistanceType[value.upper()]
+            return Equipment[value.upper()]
         except KeyError as e:
             raise ValueError(f"resistance_type must be one of: {valid_values}. Error: {str(e)}")
     
@@ -40,7 +40,7 @@ class WorkoutExerciseUpdateReq(WorkoutExerciseBase):
     exercise_uuid: UUID | None = None
     sets: int | None = None
     reps: int | None = None
-    resistance_type: ResistanceType | None = None
+    resistance_type: Equipment | None = None
     resistance_weight: float | None = None
 
 class WorkoutExerciseResponseData(WorkoutExerciseBase):
@@ -50,7 +50,7 @@ class WorkoutExerciseResponseData(WorkoutExerciseBase):
     exercise_uuid: UUID
     sets: int
     reps: int
-    resistance_type: ResistanceType
+    resistance_type: Equipment
     resistance_weight: float
     target_muscles: list[str]
 
