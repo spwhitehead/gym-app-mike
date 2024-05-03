@@ -37,12 +37,10 @@ async def get_exercise(exercise_uuid: UUID, session: Session = Depends(get_db)) 
 
 @router.post("/exercises", response_model=ExerciseResponse, status_code=status.HTTP_201_CREATED)
 async def add_exercise(exercise_post_request: ExerciseCreateReq, session: Session = Depends(get_db)) -> ExerciseResponse:
-    workout_category_id, movement_category_id, major_muscle_id, equipment_id = session.exec(select(WorkoutCategory.id, MovementCategory.id, MajorMuscle.id, Equipment.id).where(
-        WorkoutCategory.name == exercise_post_request.workout_category, 
-        MovementCategory.name == exercise_post_request.movement_category, 
-        MajorMuscle.name == exercise_post_request.major_muscle,
-        Equipment.name == exercise_post_request.equipment
-        )).first()
+    workout_category_id = session.exec(select(WorkoutCategory.id).where(WorkoutCategory.name == exercise_post_request.workout_category)).first()
+    movement_category_id = session.exec(select(MovementCategory.id).where(MovementCategory.name == exercise_post_request.movement_category)).first()
+    major_muscle_id = session.exec(select(MajorMuscle.id).where(MajorMuscle.name == exercise_post_request.major_muscle)).first()
+    equipment_id = session.exec(select(Equipment.id).where(Equipment.name == exercise_post_request.equipment)).first()
     if not workout_category_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Workout category '{exercise_post_request.workout_category}' is not a valid option.")
     if not movement_category_id:
@@ -82,12 +80,10 @@ async def update_exercise(exercise_uuid: UUID, exercise_put_request: ExerciseCre
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Exercise UUID: {exercise_uuid} not found.")
     for attr,value in exercise_put_request.model_dump(exclude={"workout_category", "movement_category", "equipment", "major_muscle","specific_muscles"}).items():
         setattr(exercise, attr, value)
-    workout_category_id, movement_category_id, major_muscle_id, equipment_id = session.exec(select(WorkoutCategory.id, MovementCategory.id, MajorMuscle.id, Equipment.id).where(
-        WorkoutCategory.name == exercise_put_request.workout_category, 
-        MovementCategory.name == exercise_put_request.movement_category, 
-        MajorMuscle.name == exercise_put_request.major_muscle,
-        Equipment.name == exercise_put_request.equipment
-        )).first()
+    workout_category_id = session.exec(select(WorkoutCategory.id).where(WorkoutCategory.name == exercise_put_request.workout_category)).first()
+    movement_category_id = session.exec(select(MovementCategory.id).where(MovementCategory.name == exercise_put_request.movement_category)).first()
+    major_muscle_id = session.exec(select(MajorMuscle.id).where(MajorMuscle.name == exercise_put_request.major_muscle)).first()
+    equipment_id = session.exec(select(Equipment.id).where(Equipment.name == exercise_put_request.equipment)).first()
     if not workout_category_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Workout category '{exercise_put_request.workout_category}' is not a valid option.")
     if not movement_category_id:

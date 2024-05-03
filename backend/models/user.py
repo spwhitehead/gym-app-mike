@@ -1,8 +1,9 @@
 from datetime import date
+from typing import ClassVar
 from uuid import UUID
 from uuid import uuid4 as new_uuid
 
-from pydantic import field_validator
+from pydantic import field_validator, ConfigDict
 from sqlmodel import SQLModel, Field, Enum as SQLEnum, Column, CHAR, Relationship
 
 from models.utility import GUID, HashedPassword
@@ -33,13 +34,9 @@ class User(UserBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True))
 
-    class Config:
-        arbitrary_types_allowed = True
-        json_encoders = {
-            HashedPassword: lambda v: str(v)
-        }
-    
     exercise_logs: list['ExerciseLog'] = Relationship(back_populates="user")
+    
+    Config: ClassVar = ConfigDict(arbitrary_types_allowed=True, json_encoders= {HashedPassword: lambda v: str(v)})
 
 class UserCreateReq(UserBase):
     pass

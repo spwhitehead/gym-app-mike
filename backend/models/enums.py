@@ -1,8 +1,5 @@
 from enum import Enum
 
-# class WorkoutCategoryTable(SQLModel, table=True):
-#     id: int
-#     name: str
 class WorkoutCategory(str, Enum):
     UPPER = "Upper"
     LOWER = "Lower"
