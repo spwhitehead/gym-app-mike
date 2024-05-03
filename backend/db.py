@@ -2,7 +2,8 @@ import json
 from sqlmodel import SQLModel, create_engine, Session, select, insert
 from sqlite3 import Connection as SQLite3Connection
 from sqlalchemy import event, inspect
-from models.exercise import Exercise, ExerciseSpecificMuscleLink
+from models.exercise import Exercise 
+from models.exercise_specific_muscle_link import ExerciseSpecificMuscleLink
 from models.workout_exercise import WorkoutExercise
 from models.workout import Workout
 from models.user import User

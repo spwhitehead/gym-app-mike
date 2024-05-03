@@ -8,6 +8,7 @@ from sqlmodel import SQLModel, Field, Enum as SQLEnum, Column, CHAR, Relationshi
 from models.utility import GUID, HashedPassword
 from models.enums import Gender
 
+from models.exercise_log import ExerciseLog
 class UserBase(SQLModel):
     username: str = Field(unique=True)
     hashed_password: str = Field(sa_column=Column(HashedPassword())) 
@@ -60,5 +61,3 @@ class UserResponse(SQLModel):
 class UserListResponse(SQLModel):
     data: list[UserResponseData]
     detail: str
-
-from models.exercise_log import ExerciseLog, ExerciseLogResponse

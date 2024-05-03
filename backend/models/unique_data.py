@@ -37,4 +37,5 @@ class Equipment(SQLModel, table=True):
 
 # Late import
 
-from models.exercise import Exercise, ExerciseSpecificMuscleLink
+from models.exercise_specific_muscle_link import ExerciseSpecificMuscleLink
+from models.exercise import Exercise

@@ -20,8 +20,6 @@ class GUID(TypeDecorator):
         return dialect.type_descriptor(VARCHAR(32))
     
     def process_bind_param(self, value: Any | None, dialect: Dialect) -> str | None:
-        print(value)
-        print(type(value))
         if value is None:
             return value
         elif isinstance(value, UUID):
