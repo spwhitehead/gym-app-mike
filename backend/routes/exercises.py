@@ -2,8 +2,7 @@
 from uuid import UUID
 from functools import lru_cache
 from fastapi import APIRouter, HTTPException, status, Depends
-from sqlmodel import Session, select, delete
-from sqlalchemy.orm import selectinload
+from sqlmodel import Session, select
 
 
 from db import engine, get_db
@@ -14,7 +13,6 @@ from models.exercise import (
     ExerciseResponse, ExerciseListResponse, ExerciseResponseData
 )
 from models.exercise_specific_muscle_link import ExerciseSpecificMuscleLink
-from models.workout_exercise import WorkoutExercise
 from models.unique_data import WorkoutCategory, MovementCategory, MajorMuscle, SpecificMuscle, Equipment
 
 router = APIRouter()
@@ -29,8 +27,6 @@ def get_all_exercises_cached() -> list[ExerciseResponseData]:
 # Exercises
 @router.get("/exercises", response_model=ExerciseListResponse, status_code=status.HTTP_200_OK)
 async def get_exercises(session: Session = Depends(get_db)) -> ExerciseListResponse:
-    #exercises = session.exec(select(Exercise)).all()
-    #data = [ExerciseResponseData.from_orm(exercise) for exercise in exercises]
     data = get_all_exercises_cached()
     return ExerciseListResponse(data=data, detail="Exercises fetched successfully.")
 
