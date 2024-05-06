@@ -40,7 +40,9 @@ class User(UserBase, table=True):
 
 class UserCreateReq(UserBase):
     pass
-class UserUpdateReq(UserBase):
+class UserPatchReq(UserBase):
+    username: str | None = None
+    hashed_password: str | None = None
     first_name: str | None = None
     last_name: str | None = None
     birthday: date | None = None

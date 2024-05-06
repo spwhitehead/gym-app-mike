@@ -1,5 +1,16 @@
 from enum import Enum
+class WeightUnits(str, Enum):
+    KILOGRAMS = "kg"
+    LBS = "lbs"
+    
+class HeightUnits(str, Enum):
+    IMPERIAL = "imperial"
+    METRIC = "metric"
 
+class Gender(str, Enum):
+    MALE = "male"
+    FEMALE = "female"
+    
 class WorkoutCategory(str, Enum):
     UPPER = "Upper"
     LOWER = "Lower"
@@ -75,14 +86,3 @@ class BandColor(str, Enum):
     ORANGE = "orange"
     GRAY = "gray"
 
-class WeightUnits(str, Enum):
-    KILOGRAMS = "kg"
-    LBS = "lbs"
-    
-class HeightUnits(str, Enum):
-    IMPERIAL = "imperial"
-    METRIC = "metric"
-
-class Gender(str, Enum):
-    MALE = "male"
-    FEMALE = "female"

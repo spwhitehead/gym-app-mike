@@ -6,3 +6,4 @@ pytest
 pytest-spec
 httpx
 bcrypt
+pyngrok

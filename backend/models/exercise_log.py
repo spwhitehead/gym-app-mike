@@ -12,21 +12,20 @@ from models.unique_data import Equipment
 
 class ExerciseLogBase(SQLModel):
     datetime_completed: datetime
-    user_uuid: UUID | None = Field(default=None, sa_column=Column(GUID(), ForeignKey("user.uuid", ondelete="CASCADE")))
-    exercise_uuid: UUID | None = Field(default=None, sa_column=Column(GUID(), ForeignKey("exercise.uuid", ondelete="CASCADE")))
     reps: int
     weight: float
 
 class ExerciseLog(ExerciseLogBase, table=True): 
     id: int | None = Field(default=None, primary_key=True)
     uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True))
+    user_uuid: UUID | None = Field(default=None, sa_column=Column(GUID(), ForeignKey("user.uuid", ondelete="CASCADE")))
+    exercise_uuid: UUID | None = Field(default=None, sa_column=Column(GUID(), ForeignKey("exercise.uuid", ondelete="CASCADE")))
     
     exercise: 'Exercise' = Relationship(back_populates="exercise_logs")
     user: 'User' = Relationship(back_populates="exercise_logs")
     
 class ExerciseLogCreateReq(ExerciseLogBase):
     exercise_uuid: UUID
-
 
 class ExerciseLogPatchReq(ExerciseLogBase):
     datetime_completed: datetime | None = None
@@ -36,7 +35,7 @@ class ExerciseLogPatchReq(ExerciseLogBase):
 
 class ExerciseLogResponseData(ExerciseLogBase):
     uuid: UUID
-    exercise_uuid: UUID
+    user_uuid: UUID
     exercise: 'ExerciseResponseData'
     
 class ExerciseLogResponse(SQLModel):

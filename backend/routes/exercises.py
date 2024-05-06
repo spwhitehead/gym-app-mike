@@ -1,5 +1,6 @@
 
 from uuid import UUID
+from functools import lru_cache
 from fastapi import APIRouter, HTTPException, status, Depends
 from sqlmodel import Session, select, delete
 from sqlalchemy.orm import selectinload
@@ -18,11 +19,19 @@ from models.unique_data import WorkoutCategory, MovementCategory, MajorMuscle, S
 
 router = APIRouter()
 
+@lru_cache(maxsize=1)
+def get_all_exercises_cached() -> list[ExerciseResponseData]:
+    with Session(engine) as session:
+        exercises = session.exec(select(Exercise)).all()
+        data = [ExerciseResponseData.from_orm(exercise) for exercise in exercises]
+        return data
+        
 # Exercises
 @router.get("/exercises", response_model=ExerciseListResponse, status_code=status.HTTP_200_OK)
 async def get_exercises(session: Session = Depends(get_db)) -> ExerciseListResponse:
-    exercises = session.exec(select(Exercise)).all()
-    data = [ExerciseResponseData.from_orm(exercise) for exercise in exercises]
+    #exercises = session.exec(select(Exercise)).all()
+    #data = [ExerciseResponseData.from_orm(exercise) for exercise in exercises]
+    data = get_all_exercises_cached()
     return ExerciseListResponse(data=data, detail="Exercises fetched successfully.")
 
 
@@ -42,17 +51,22 @@ async def add_exercise(exercise_post_request: ExerciseCreateReq, session: Sessio
     major_muscle_id = session.exec(select(MajorMuscle.id).where(MajorMuscle.name == exercise_post_request.major_muscle)).first()
     equipment_id = session.exec(select(Equipment.id).where(Equipment.name == exercise_post_request.equipment)).first()
     if not workout_category_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Workout category '{exercise_post_request.workout_category}' is not a valid option.")
+        valid_options = session.exec(select(WorkoutCategory.name)).all()
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Workout category '{exercise_post_request.workout_category}' is not a valid option. These are valid options: {valid_options}")
     if not movement_category_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Movement category '{exercise_post_request.movement_category}' is not a valid option.")
+        valid_options = session.exec(select(MovementCategory.name)).all()
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Movement category '{exercise_post_request.movement_category}' is not a valid option. These are valid options: {valid_options}")
     if not major_muscle_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Major muscle '{exercise_post_request.major_muscle}' is not a valid option.")
+        valid_options = session.exec(select(MajorMuscle.name)).all()
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Major muscle '{exercise_post_request.major_muscle}' is not a valid option. These are valid options: {valid_options}")
     if not equipment_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Equipment '{exercise_post_request.equipment}' is not a valid option.")
+        valid_options = session.exec(select(Equipment.name)).all()
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Equipment '{exercise_post_request.equipment}' is not a valid option. These are valid options: {valid_options}")
     for specific_muscle in exercise_post_request.specific_muscles:
         specific_muscle_id = session.exec(select(SpecificMuscle.id).where(SpecificMuscle.name == specific_muscle)).first()
         if not specific_muscle_id:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Specific Muscle '{specific_muscle}' is not a valid option.")
+            valid_options = session.exec(select(SpecificMuscle.name)).all()
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Specific Muscle '{specific_muscle}' is not a valid option. These are valid options: {valid_options}")
     exercise = Exercise.model_validate(exercise_post_request.model_dump(
         exclude={"specific_muscles"}),
         update={"workout_category_id":workout_category_id,
@@ -70,6 +84,7 @@ async def add_exercise(exercise_post_request: ExerciseCreateReq, session: Sessio
     session.commit()
     session.refresh(exercise)
     data = ExerciseResponseData.from_orm(exercise)
+    get_all_exercises_cached.cache_clear()
     return ExerciseResponse(data=data, detail=f"Exercise added successfully.")
             
 
@@ -107,6 +122,7 @@ async def update_exercise(exercise_uuid: UUID, exercise_put_request: ExerciseCre
     session.commit()
     session.refresh(exercise)
     data =  ExerciseResponseData.from_orm(exercise)
+    get_all_exercises_cached.cache_clear()
     return ExerciseResponse(data=data, detail=f"Exercise updated successfully.")
 
 @router.patch("/exercises/{exercise_uuid:uuid}", response_model=ExerciseResponse, status_code=status.HTTP_200_OK)
@@ -154,6 +170,7 @@ async def update_exercise(exercise_uuid: UUID, exercise_patch_request: ExerciseP
     session.commit()
     session.refresh(exercise)
     data = ExerciseResponseData.from_orm(exercise)
+    get_all_exercises_cached.cache_clear()
     return ExerciseResponse(data=data, detail=f"Exercise patched successfully.")
 
 @router.delete("/exercises/{exercise_uuid:uuid}", status_code=status.HTTP_204_NO_CONTENT)
@@ -163,3 +180,4 @@ async def delete_exercise(exercise_uuid: UUID, session: Session = Depends(get_db
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Exercise UUID: {exercise_uuid} not found.")
     session.delete(exercise)
     session.commit()
+    get_all_exercises_cached.cache_clear()

@@ -7,7 +7,7 @@ from db import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 from sqlmodel import select, insert
 from models.exercise import Exercise
-from models.unique_data import WorkoutCategory, MovementCategory, MajorMuscle, SpecificMuscle, Equipment
+from models.unique_data import WorkoutCategory, MovementCategory, MajorMuscle, SpecificMuscle, Equipment, BandColor
 
 from db import get_db
 from main import app
@@ -21,8 +21,6 @@ def build_database(engine):
                 session.exec(insert(WorkoutCategory).values(name=exercise["workoutCategory"].title()))
             if not session.exec(select(MovementCategory).where(MovementCategory.name == exercise["movementCategory"].title())).first():
                 session.exec(insert(MovementCategory).values(name=exercise["movementCategory"].title()))
-            # if not session.exec(select(BandColor).where(BandColor.name == exercise["bandColor"])).first():
-            #     session.exec(insert(BandColor).values(name=exercise["bandColor"].title()))
             if not session.exec(select(MajorMuscle).where(MajorMuscle.name == exercise["majorMuscle"].title())).first():
                 session.exec(insert(MajorMuscle).values(name=exercise["majorMuscle"].title()))
             for specific_muscle in exercise["specificMuscles"]:
@@ -30,6 +28,10 @@ def build_database(engine):
                     session.exec(insert(SpecificMuscle).values(name=specific_muscle.title()))
             if not session.exec(select(Equipment).where(Equipment.name == exercise["equipment"].title())).first():
                 session.exec(insert(Equipment).values(name=exercise["equipment"].title()))
+        band_colors = ["yellow", "red", "green", "black", "purple", "blue", "orange", "gray"]
+        for color in band_colors:
+            if not session.exec(select(BandColor).where(BandColor.name == color.title())).first():
+                session.exec(insert(BandColor).values(name=color.title()))
         session.commit()
         return session
     
@@ -110,6 +112,7 @@ def test_get_exercises(client_full_db: TestClient, session: Session):
     for data in response_dict['data']:
         data['specific_muscles'].sort()
     assert response.status_code == 200
+    assert len(response_dict['data']) == 3
     assert response_dict == {
         'data': [
             {

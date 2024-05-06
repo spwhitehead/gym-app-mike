@@ -3119,22 +3119,6 @@
     ]
   },
   {
-    "bodyPart": "lower legs",
-    "equipment": "barbell",
-    "gifUrl": "https://v2.exercisedb.io/image/Jx-hWPwymMk6y4",
-    "id": "1371",
-    "name": "barbell seated calf raise",
-    "target": "calves",
-    "secondaryMuscles": ["hamstrings"],
-    "instructions": [
-      "Sit on a bench with your feet flat on the floor and a barbell resting on your thighs.",
-      "Place the balls of your feet on a raised platform, such as a block or step.",
-      "Lower your heels as far as possible, feeling a stretch in your calves.",
-      "Raise your heels as high as possible, contracting your calves.",
-      "Repeat for the desired number of repetitions."
-    ]
-  },
-  {
     "bodyPart": "upper arms",
     "equipment": "barbell",
     "gifUrl": "https://v2.exercisedb.io/image/-O0bpvVeA1S63Q",
@@ -13323,23 +13307,6 @@
   {
     "bodyPart": "upper arms",
     "equipment": "ez barbell",
-    "gifUrl": "https://v2.exercisedb.io/image/NTqNBckXovzV6j",
-    "id": "1628",
-    "name": "ez barbell spider curl",
-    "target": "biceps",
-    "secondaryMuscles": ["forearms"],
-    "instructions": [
-      "Stand with your feet shoulder-width apart and hold the ez barbell with an underhand grip, palms facing up.",
-      "Rest your upper arms on a preacher bench or stability ball, allowing your elbows to hang down.",
-      "Keeping your upper arms stationary, exhale and curl the barbell up towards your shoulders.",
-      "Pause for a moment at the top, squeezing your biceps.",
-      "Inhale and slowly lower the barbell back to the starting position.",
-      "Repeat for the desired number of repetitions."
-    ]
-  },
-  {
-    "bodyPart": "upper arms",
-    "equipment": "ez barbell",
     "gifUrl": "https://v2.exercisedb.io/image/QwxziUG3PaHFM3",
     "id": "2404",
     "name": "ez-bar biceps curl (with arm blaster)",
@@ -15759,22 +15726,6 @@
     ]
   },
   {
-    "bodyPart": "chest",
-    "equipment": "leverage machine",
-    "gifUrl": "https://v2.exercisedb.io/image/c93pnhCZtyAiBl",
-    "id": "0576",
-    "name": "lever chest press",
-    "target": "pectorals",
-    "secondaryMuscles": ["triceps", "shoulders"],
-    "instructions": [
-      "Adjust the seat height and position yourself on the machine with your back flat against the pad.",
-      "Grasp the handles with an overhand grip and position your elbows at a 90-degree angle.",
-      "Push the handles forward until your arms are fully extended, exhaling during the movement.",
-      "Pause briefly at the end of the movement, then slowly return to the starting position, inhaling as you do so.",
-      "Repeat for the desired number of repetitions."
-    ]
-  },
-  {
     "bodyPart": "upper legs",
     "equipment": "leverage machine",
     "gifUrl": "https://v2.exercisedb.io/image/14S9-2BCB6A-Dw",
@@ -17921,22 +17872,6 @@
   },
   {
     "bodyPart": "chest",
-    "equipment": "stability ball",
-    "gifUrl": "https://v2.exercisedb.io/image/tPkF5Bexf2Rzh2",
-    "id": "0656",
-    "name": "push-up (on stability ball)",
-    "target": "pectorals",
-    "secondaryMuscles": ["triceps", "shoulders", "core"],
-    "instructions": [
-      "Place the stability ball on the ground and position yourself facing down with your hands on the ball, shoulder-width apart.",
-      "Extend your legs straight out behind you, balancing on your toes.",
-      "Engage your core and lower your chest towards the ball by bending your elbows, keeping your body in a straight line.",
-      "Pause for a moment at the bottom, then push yourself back up to the starting position by straightening your arms.",
-      "Repeat for the desired number of repetitions."
-    ]
-  },
-  {
-    "bodyPart": "chest",
     "equipment": "body weight",
     "gifUrl": "https://v2.exercisedb.io/image/du2-ASak7eyLBe",
     "id": "0659",
@@ -18874,22 +18809,6 @@
       "Continue leaning forward until you feel a stretch in your hamstrings.",
       "Hold this position for a few breaths.",
       "Slowly release the stretch and return to the starting position.",
-      "Repeat for the desired number of repetitions."
-    ]
-  },
-  {
-    "bodyPart": "upper legs",
-    "equipment": "body weight",
-    "gifUrl": "https://v2.exercisedb.io/image/9DO1nf28V7Xv2c",
-    "id": "0697",
-    "name": "self assisted inverse leg curl",
-    "target": "hamstrings",
-    "secondaryMuscles": ["glutes", "calves"],
-    "instructions": [
-      "Lie flat on your back on a mat or bench with your legs extended.",
-      "Place your hands by your sides or under your glutes for support.",
-      "Bend your knees and lift your feet off the ground, bringing your thighs towards your chest.",
-      "Pause for a moment at the top, then slowly lower your legs back to the starting position.",
       "Repeat for the desired number of repetitions."
     ]
   },
@@ -20150,24 +20069,6 @@
       "Place the balls of your feet on the edge of a step or platform, with your heels hanging off.",
       "Hold onto the bar for support, keeping your back straight and core engaged.",
       "Raise your heels as high as possible, lifting your body weight onto the balls of your feet.",
-      "Pause for a moment at the top, then slowly lower your heels back down to the starting position.",
-      "Repeat for the desired number of repetitions."
-    ]
-  },
-  {
-    "bodyPart": "lower legs",
-    "equipment": "smith machine",
-    "gifUrl": "https://v2.exercisedb.io/image/9W699MBDEaTilG",
-    "id": "1394",
-    "name": "smith reverse calf raises",
-    "target": "calves",
-    "secondaryMuscles": ["hamstrings"],
-    "instructions": [
-      "Adjust the smith machine bar to a height just below your shoulders.",
-      "Stand facing the bar with your feet hip-width apart and toes pointing forward.",
-      "Place the balls of your feet on the edge of a step or platform, with your heels hanging off.",
-      "Hold onto the bar for support.",
-      "Raise your heels as high as possible, lifting your body up onto your toes.",
       "Pause for a moment at the top, then slowly lower your heels back down to the starting position.",
       "Repeat for the desired number of repetitions."
     ]
