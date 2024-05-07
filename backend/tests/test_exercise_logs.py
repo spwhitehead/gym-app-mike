@@ -6,9 +6,7 @@ from httpx import Response
 from db import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 from sqlmodel import select, insert
-from sqlalchemy import Engine
-from models.unique_data import WorkoutCategory, MovementCategory, MajorMuscle, SpecificMuscle, Equipment, BandColor
-from models.exercise_log import ExerciseLog
+from models.relationship_merge import ExerciseLog, WorkoutCategory, MovementCategory, MajorMuscle, SpecificMuscle, Equipment, BandColor, Exercise, User
 
 from db import get_db
 from main import app
@@ -39,7 +37,7 @@ def build_database(engine):
 
 @pytest.fixture(name="session")
 def session_fixture():
-    engine: Engine = create_engine(
+    engine = create_engine(
         "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
     )
     SQLModel.metadata.create_all(engine)
@@ -85,8 +83,8 @@ def memory_client_fixture(client: TestClient):
     yield client
 
 def test_empty_get_exercise_logs(client_full_db: TestClient):
-    user_id: str = client_full_db.get("/users").json()["data"][0]["uuid"]
-    response: Response = client_full_db.get(f"/users/{user_id}/exercise_logs")
+    user_uuid: str = client_full_db.get("/users/").json()["data"][0]["uuid"]
+    response: Response = client_full_db.get(f"/users/{user_uuid}/exercise_logs")
     response_dict: dict[str, object] = response.json()
     assert response.status_code == 200
     assert response_dict == {
@@ -141,7 +139,9 @@ def test_put_exercise_log(client_full_db: TestClient, session: Session):
         }
     response: Response = client_full_db.post(f"/users/{user_uuid}/exercise_logs", json=exercise_log_data)
     response_dict: dict[str, object] = response.json() 
-    exercise_log_uuid = client_full_db.get(f"/users/{user_uuid}/exercise_logs").json()["data"][0]["uuid"]
+    response: Response = client_full_db.get(f"/users/{user_uuid}/exercise_logs")
+    response_dict: dict[str, object] = response.json()
+    exercise_log_uuid = response_dict["data"][0]["uuid"]
     exercise_uuid = client_full_db.get(f"/users/{user_uuid}/exercise_logs/{exercise_log_uuid}").json()["data"]["exercise"]["uuid"]
     exercise_log_data = {
         "datetime_completed": "2025-01-01T12:00:00",
@@ -152,7 +152,7 @@ def test_put_exercise_log(client_full_db: TestClient, session: Session):
     response: Response = client_full_db.put(f"/users/{user_uuid}/exercise_logs/{exercise_log_uuid}", json=exercise_log_data)
     response_dict = response.json()
     exercise_log_uuid = UUID(exercise_log_uuid)
-    exercise_log_uuid, exercise_uuid, user_uuid = map(str, session.exec(select(ExerciseLog.uuid, ExerciseLog.exercise_uuid, ExerciseLog.user_uuid).where(ExerciseLog.uuid == exercise_log_uuid)).first())
+    exercise_log_uuid, exercise_id, user_id = map(str, session.exec(select(ExerciseLog.uuid, ExerciseLog.exercise_id, ExerciseLog.user_id).where(ExerciseLog.uuid == exercise_log_uuid)).first())
     assert response.status_code == 200
     assert response_dict == {
         "data": {
@@ -198,7 +198,7 @@ def test_patch_exercise_log(client_full_db: TestClient, session: Session):
     response: Response = client_full_db.patch(f"/users/{user_uuid}/exercise_logs/{exercise_log_uuid}", json=exercise_log_data)
     response_dict = response.json()
     exercise_log_uuid = UUID(exercise_log_uuid)
-    exercise_log_uuid, exercise_uuid, user_uuid = map(str, session.exec(select(ExerciseLog.uuid, ExerciseLog.exercise_uuid, ExerciseLog.user_uuid).where(ExerciseLog.uuid == exercise_log_uuid)).first())
+    exercise_log_uuid, exercise_id, user_id = map(str, session.exec(select(ExerciseLog.uuid, ExerciseLog.exercise_id, ExerciseLog.user_id).where(ExerciseLog.uuid == exercise_log_uuid)).first())
     assert response.status_code == 200
     assert response_dict == {
         "data": {
@@ -213,12 +213,12 @@ def test_patch_exercise_log(client_full_db: TestClient, session: Session):
                     "Middle Chest",
                     "Triceps"
                     ],
-                "uuid": exercise_uuid,
+                "uuid": str(session.exec(select(Exercise).where(Exercise.id == exercise_id)).first().uuid),
                 "workout_category": "Upper"
                 },
             "reps": 20,
             "uuid": exercise_log_uuid,
-            "user_uuid": user_uuid,
+            "user_uuid": str(session.exec(select(User).where(User.id == user_id)).first().uuid),
             "weight": 125.0
             },
         "detail": "Exercise log updated successfully."

@@ -4,14 +4,9 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from sqlmodel import Session, select
 
 from db import engine, get_db
-from models.exercise import Exercise, ExerciseResponseData
-from models.workout_exercise import (
-    WorkoutExercise, 
-    WorkoutExerciseCreateReq, WorkoutExercisePatchReq,
-    WorkoutExerciseResponseData,
-    WorkoutExerciseResponse, WorkoutExerciseListResponse
-)
-from models.user import User
+from models.workout_exercise import WorkoutExerciseCreateReq, WorkoutExercisePatchReq
+from models.responses import WorkoutExerciseResponseData, WorkoutExerciseResponse, WorkoutExerciseListResponse, ExerciseResponseData
+from models.relationship_merge import WorkoutExercise, User, Exercise
 
 router = APIRouter()
 

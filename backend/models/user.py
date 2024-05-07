@@ -4,12 +4,11 @@ from uuid import UUID
 from uuid import uuid4 as new_uuid
 
 from pydantic import field_validator, ConfigDict
-from sqlmodel import SQLModel, Field, Enum as SQLEnum, Column, CHAR, Relationship
+from sqlmodel import SQLModel, Field, Enum as SQLEnum, Column, Relationship
 
 from models.utility import GUID, HashedPassword
 from models.enums import Gender
 
-from models.exercise_log import ExerciseLog
 class UserBase(SQLModel):
     username: str = Field(unique=True)
     hashed_password: str = Field(sa_column=Column(HashedPassword())) 
@@ -30,12 +29,10 @@ class UserBase(SQLModel):
         except KeyError as e:
             raise ValueError(f"resistance_type must be one of: {valid_values}. Error: {str(e)}")
 
-class User(UserBase, table=True):
+class UserMaster(UserBase):
     id: int | None = Field(default=None, primary_key=True)
-    uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True))
+    uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True, index=True))
 
-    exercise_logs: list['ExerciseLog'] = Relationship(back_populates="user")
-    
     Config: ClassVar = ConfigDict(arbitrary_types_allowed=True, json_encoders= {HashedPassword: lambda v: str(v)})
 
 class UserCreateReq(UserBase):
@@ -50,13 +47,3 @@ class UserPatchReq(UserBase):
     height: int | None = None
     gender: Gender | None = None
 
-class UserResponseData(UserBase):
-    uuid: UUID
-    
-class UserResponse(SQLModel):
-    data: UserResponseData
-    detail: str
-
-class UserListResponse(SQLModel):
-    data: list[UserResponseData]
-    detail: str

@@ -1,41 +1,44 @@
-from sqlmodel import SQLModel, Field, Relationship
+# from sqlmodel import SQLModel, Field, Relationship
 
-class WorkoutCategory(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    name: str = Field(unique=True, index=True)
+# def exercise_muscle_link():
+#     from models.exercise_specific_muscle_link import ExerciseSpecificMuscleLink
+#     return ExerciseSpecificMuscleLink
+# class WorkoutCategory(SQLModel, table=True):
+#     id: int | None = Field(default=None, primary_key=True)
+#     name: str = Field(unique=True, index=True)
 
-    exercises: list['Exercise'] = Relationship(back_populates="workout_category")
+#     exercises: list['Exercise'] = Relationship(back_populates="workout_category")
 
-class MovementCategory(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    name: str = Field(unique=True, index=True)
+# class MovementCategory(SQLModel, table=True):
+#     id: int | None = Field(default=None, primary_key=True)
+#     name: str = Field(unique=True, index=True)
 
-    exercises: list['Exercise'] = Relationship(back_populates="movement_category")
+#     exercises: list['Exercise'] = Relationship(back_populates="movement_category")
 
-class BandColor(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    name: str = Field(unique=True, index=True)
+# class BandColor(SQLModel, table=True):
+#     id: int | None = Field(default=None, primary_key=True)
+#     name: str = Field(unique=True, index=True)
 
-class MajorMuscle(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    name: str = Field(unique=True, index=True)
+# class MajorMuscle(SQLModel, table=True):
+#     id: int | None = Field(default=None, primary_key=True)
+#     name: str = Field(unique=True, index=True)
 
-    exercises: list['Exercise'] = Relationship(back_populates="major_muscle")
+#     exercises: list['Exercise'] = Relationship(back_populates="major_muscle")
 
-class SpecificMuscle(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    name: str = Field(unique=True, index=True)
+# class SpecificMuscle(SQLModel, table=True):
+#     from models.exercise_specific_muscle_link import ExerciseSpecificMuscleLink
+#     id: int | None = Field(default=None, primary_key=True)
+#     name: str = Field(unique=True, index=True)
     
-    exercise_links: list['ExerciseSpecificMuscleLink'] = Relationship(back_populates="specific_muscle")
+#     exercises: list['Exercise'] = Relationship(back_populates="specific_muscle", link_model=exercise_muscle_link())
 
-class Equipment(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    name: str = Field(unique=True, index=True)
+# class Equipment(SQLModel, table=True):
+#     id: int | None = Field(default=None, primary_key=True)
+#     name: str = Field(unique=True, index=True)
     
-    exercises: list['Exercise'] = Relationship(back_populates="equipment")
+#     exercises: list['Exercise'] = Relationship(back_populates="equipment")
 
 
-# Late import
+# # Late import
 
-from models.exercise_specific_muscle_link import ExerciseSpecificMuscleLink
-from models.exercise import Exercise
+# from models.exercise import Exercise

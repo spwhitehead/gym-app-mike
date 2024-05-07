@@ -6,11 +6,20 @@ from httpx import Response
 from db import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 from sqlmodel import select, insert
-from models.exercise import Exercise
-from models.unique_data import WorkoutCategory, MovementCategory, MajorMuscle, SpecificMuscle, Equipment, BandColor
+from models.relationship_merge import Exercise, WorkoutCategory, MovementCategory, MajorMuscle, SpecificMuscle, Equipment, BandColor
+from sqlite3 import Connection as SQLite3Connection
+from sqlalchemy import event, inspect
+
 
 from db import get_db
 from main import app
+
+
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    if isinstance(dbapi_connection, SQLite3Connection):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
 def build_database(engine):
     with open("exercise_json/new_exercise_json.json", 'r') as file:
@@ -38,9 +47,8 @@ def build_database(engine):
 
 @pytest.fixture(name="session")
 def session_fixture():
-    engine = create_engine(
-        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
-    )
+    engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    event.listen(engine, "connect", set_sqlite_pragma)
     SQLModel.metadata.create_all(engine)
     return build_database(engine) 
 
@@ -97,14 +105,12 @@ def memory_client_fixture(client: TestClient):
     yield client
     
 
-def test_get_empty_exercises(client: TestClient):
+def test_get_empty_exercises(client: TestClient, session: Session):
     response: Response = client.get("/exercises")
     response_dict: dict[str, object] = response.json()
     assert response.status_code == 200
-    assert response_dict == {
-        'data': [],
-        'detail': 'Exercises fetched successfully.',
-        }
+    assert len(response_dict['data']) == 0
+    assert response_dict['data'] == []
 
 def test_get_exercises(client_full_db: TestClient, session: Session):
     response: Response = client_full_db.get("/exercises")

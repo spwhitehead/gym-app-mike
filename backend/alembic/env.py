@@ -1,5 +1,5 @@
 from logging.config import fileConfig
-
+from decouple import config
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
@@ -9,10 +9,12 @@ from db import SQLModel
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
+POSTGRES_URL = config("POSTGRES_URL")
 config = context.config
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
+config.set_main_option("sqlalchemy.url", POSTGRES_URL)
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 

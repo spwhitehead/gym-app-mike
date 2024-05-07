@@ -11,13 +11,12 @@ class WorkoutExerciseBase(SQLModel):
     planned_reps: int
     planned_resistance_weight: float  
     
-class WorkoutExercise(WorkoutExerciseBase, table=True):
+class WorkoutExerciseMaster(WorkoutExerciseBase):
     id: int | None = Field(default=None, primary_key=True)
     uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True))
     workout_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("workout.id", ondelete="CASCADE")))
-    exercise_uuid: UUID = Field(default=None, sa_column=Column(GUID(), ForeignKey("exercise.uuid", ondelete="CASCADE")))
+    exercise_uuid: UUID = Field(default=None, sa_column=Column(GUID(), ForeignKey("exercise.uuid", ondelete="CASCADE"), index=True))
     user_uuid: UUID | None = Field(default=None, sa_column=Column(GUID(), ForeignKey("user.uuid", ondelete="CASCADE")))
-    workout: 'Workout' = Relationship(back_populates="workout_exercises")
     
 
 class WorkoutExerciseCreateReq(WorkoutExerciseBase):
@@ -29,18 +28,3 @@ class WorkoutExercisePatchReq(WorkoutExerciseBase):
     planned_reps: int | None = None
     planned_resistance_weight: float | None = None
 
-class WorkoutExerciseResponseData(WorkoutExerciseBase):
-    uuid: UUID
-    exercise: 'ExerciseResponseData'
-
-class WorkoutExerciseResponse(SQLModel):
-    data: WorkoutExerciseResponseData
-    detail: str
-    
-class WorkoutExerciseListResponse(SQLModel):
-    data: list[WorkoutExerciseResponseData] 
-    detail: str
-
-# Late import
-from models.workout import Workout
-from models.exercise import ExerciseResponseData

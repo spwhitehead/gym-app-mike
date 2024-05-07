@@ -6,9 +6,7 @@ from httpx import Response
 from db import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 from sqlmodel import select, insert
-from models.exercise import Exercise
-from models.user import User
-from models.unique_data import WorkoutCategory, MovementCategory, MajorMuscle, SpecificMuscle, Equipment, BandColor
+from models.relationship_merge import Exercise, User, WorkoutCategory, MovementCategory, MajorMuscle, SpecificMuscle, Equipment, BandColor
 
 from db import get_db
 from main import app

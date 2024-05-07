@@ -2,27 +2,20 @@ from uuid import UUID
 from uuid import uuid4 as new_uuid
 from datetime import datetime
 
-from pydantic import field_validator
-
-from sqlmodel import SQLModel, Field, Enum as SQLEnum, Column, Relationship, Integer, ForeignKey, CHAR, String
+from sqlmodel import SQLModel, Field, Column, Relationship, ForeignKey, Integer
 
 from models.utility import GUID
-from models.unique_data import Equipment
-    
 
 class ExerciseLogBase(SQLModel):
     datetime_completed: datetime
     reps: int
     weight: float
 
-class ExerciseLog(ExerciseLogBase, table=True): 
+class ExerciseLogMaster(ExerciseLogBase): 
     id: int | None = Field(default=None, primary_key=True)
     uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True))
-    user_uuid: UUID | None = Field(default=None, sa_column=Column(GUID(), ForeignKey("user.uuid", ondelete="CASCADE")))
-    exercise_uuid: UUID | None = Field(default=None, sa_column=Column(GUID(), ForeignKey("exercise.uuid", ondelete="CASCADE")))
-    
-    exercise: 'Exercise' = Relationship(back_populates="exercise_logs")
-    user: 'User' = Relationship(back_populates="exercise_logs")
+    user_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("user.id", ondelete="CASCADE")))
+    exercise_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("exercise.id", ondelete="CASCADE")))
     
 class ExerciseLogCreateReq(ExerciseLogBase):
     exercise_uuid: UUID
@@ -33,18 +26,3 @@ class ExerciseLogPatchReq(ExerciseLogBase):
     reps: int | None = None
     weight: float | None = None
 
-class ExerciseLogResponseData(ExerciseLogBase):
-    uuid: UUID
-    user_uuid: UUID
-    exercise: 'ExerciseResponseData'
-    
-class ExerciseLogResponse(SQLModel):
-    data: ExerciseLogResponseData
-    detail: str
-
-class ExerciseLogListResponse(SQLModel):
-    data: list[ExerciseLogResponseData]
-    detail: str
-
-from models.exercise import Exercise, ExerciseResponseData
-from models.user import User, UserResponseData

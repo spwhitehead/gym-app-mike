@@ -17,7 +17,7 @@ class GUID(TypeDecorator):
     cache_ok = True
     
     def load_dialect_impl(self, dialect: Dialect) -> TypeEngine[Any]:
-        return dialect.type_descriptor(VARCHAR(32))
+        return dialect.type_descriptor(VARCHAR(36))
     
     def process_bind_param(self, value: Any | None, dialect: Dialect) -> str | None:
         if value is None:

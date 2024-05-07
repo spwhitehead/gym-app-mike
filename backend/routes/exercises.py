@@ -7,27 +7,24 @@ from sqlmodel import Session, select
 
 from db import engine, get_db
 
-from models.exercise import (
-    Exercise,
-    ExerciseCreateReq, ExercisePatchReq,
-    ExerciseResponse, ExerciseListResponse, ExerciseResponseData
-)
-from models.exercise_specific_muscle_link import ExerciseSpecificMuscleLink
-from models.unique_data import WorkoutCategory, MovementCategory, MajorMuscle, SpecificMuscle, Equipment
+from models.exercise import ExerciseCreateReq, ExercisePatchReq
+
+from models.responses import ExerciseResponse, ExerciseListResponse, ExerciseResponseData
+
+from models.relationship_merge import ExerciseSpecificMuscleLink, WorkoutCategory, MovementCategory, MajorMuscle, SpecificMuscle, Equipment, Exercise
 
 router = APIRouter()
 
 @lru_cache(maxsize=1)
-def get_all_exercises_cached() -> list[ExerciseResponseData]:
-    with Session(engine) as session:
-        exercises = session.exec(select(Exercise)).all()
-        data = [ExerciseResponseData.from_orm(exercise) for exercise in exercises]
-        return data
+def get_all_exercises_cached(session: Session) -> list[ExerciseResponseData]:
+    exercises = session.exec(select(Exercise)).all()
+    data = [ExerciseResponseData.from_orm(exercise) for exercise in exercises]
+    return data
         
 # Exercises
 @router.get("/exercises", response_model=ExerciseListResponse, status_code=status.HTTP_200_OK)
 async def get_exercises(session: Session = Depends(get_db)) -> ExerciseListResponse:
-    data = get_all_exercises_cached()
+    data = get_all_exercises_cached(session)
     return ExerciseListResponse(data=data, detail="Exercises fetched successfully.")
 
 

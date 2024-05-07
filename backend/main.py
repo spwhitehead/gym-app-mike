@@ -14,6 +14,7 @@ app.include_router(users.router, tags=["Users"])
 app.include_router(exercise_logs.router, tags=["Exercise Logs"])
 app.include_router(workout_exercises.router, tags=["Workout Exercises"])
 
+# Uncomment to force HTTPS
 # @app.middleware("http")
 # async def enforce_https(request: Request, call_next):
 #     if not request.url.scheme == "https":

@@ -7,3 +7,5 @@ pytest-spec
 httpx
 bcrypt
 pyngrok
+python-decouple
+psycopg2

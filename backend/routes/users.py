@@ -4,12 +4,10 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from sqlmodel import Session, select
 
 from db import engine, get_db
-from models.user import (
-    User,
-    UserCreateReq, UserPatchReq,
-    UserResponseData,
-    UserResponse, UserListResponse
-    )
+from models.user import UserCreateReq, UserPatchReq
+from models.relationship_merge import User
+from models.responses import UserResponseData, UserResponse, UserListResponse
+
 router = APIRouter()
 
 # User End Points
