@@ -11,11 +11,11 @@ class ExerciseLogBase(SQLModel):
     reps: int
     weight: float
 
-class ExerciseLogMaster(ExerciseLogBase): 
-    id: int | None = Field(default=None, primary_key=True)
-    uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True))
-    user_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("user.id", ondelete="CASCADE")))
-    exercise_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("exercise.id", ondelete="CASCADE")))
+class ExerciseLogTableBase(ExerciseLogBase): 
+    id: int | None = Field(default=None, primary_key=True, index=True)
+    uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True,  index=True))
+    user_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), index=True))
+    exercise_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("exercise.id", ondelete="CASCADE"), index=True))
     
 class ExerciseLogCreateReq(ExerciseLogBase):
     exercise_uuid: UUID

@@ -29,8 +29,8 @@ class UserBase(SQLModel):
         except KeyError as e:
             raise ValueError(f"resistance_type must be one of: {valid_values}. Error: {str(e)}")
 
-class UserMaster(UserBase):
-    id: int | None = Field(default=None, primary_key=True)
+class UserTableBase(UserBase):
+    id: int | None = Field(default=None, primary_key=True, index=True)
     uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True, index=True))
 
     Config: ClassVar = ConfigDict(arbitrary_types_allowed=True, json_encoders= {HashedPassword: lambda v: str(v)})

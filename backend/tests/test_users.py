@@ -107,7 +107,6 @@ def test_get_empty_users(client: TestClient, session: Session):
 
 def test_get_users(client_full_db: TestClient, session: Session):
     users = session.exec(select(User)).all()
-    user_count = len(users)
     response: Response = client_full_db.get("/users")
     response_dict: dict[str, object] = response.json()
     assert response.status_code == 200

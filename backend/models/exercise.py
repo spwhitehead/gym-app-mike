@@ -12,13 +12,13 @@ class ExerciseBase(SQLModel):
     name: str 
     description: str = Field(Column(Text)) 
 
-class ExerciseMaster(ExerciseBase):
-    id: int | None = Field(default=None, primary_key=True)
-    uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True))
-    workout_category_id: int | None = Field(default=None, foreign_key="workoutcategory.id")
-    movement_category_id: int | None = Field(default=None, foreign_key="movementcategory.id")
-    equipment_id: int | None = Field(default=None, foreign_key="equipment.id")
-    major_muscle_id: int | None = Field(default=None, foreign_key="majormuscle.id")
+class ExerciseTableBase(ExerciseBase):
+    id: int | None = Field(default=None, primary_key=True, index=True)
+    uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True, index=True))
+    workout_category_id: int | None = Field(default=None, foreign_key="workoutcategory.id", index=True)
+    movement_category_id: int | None = Field(default=None, foreign_key="movementcategory.id", index=True)
+    equipment_id: int | None = Field(default=None, foreign_key="equipment.id", index=True)
+    major_muscle_id: int | None = Field(default=None, foreign_key="majormuscle.id", index=True)
     
 
 class ExerciseCreateReq(ExerciseBase):
@@ -36,9 +36,6 @@ class ExercisePatchReq(ExerciseBase):
     equipment: str | None = None
     major_muscle: str | None = None
     specific_muscles: list[str] | None = None
-
-
-
 
 class ExerciseLogBase(SQLModel):
     datetime_completed: datetime

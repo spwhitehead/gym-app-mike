@@ -15,7 +15,7 @@ from models.relationship_merge import ExerciseSpecificMuscleLink, WorkoutCategor
 
 router = APIRouter()
 
-@lru_cache(maxsize=1)
+@lru_cache(maxsize=1000)
 def get_all_exercises_cached(session: Session) -> list[ExerciseResponseData]:
     exercises = session.exec(select(Exercise)).all()
     data = [ExerciseResponseData.from_orm(exercise) for exercise in exercises]

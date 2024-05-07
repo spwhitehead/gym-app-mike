@@ -11,12 +11,12 @@ class WorkoutExerciseBase(SQLModel):
     planned_reps: int
     planned_resistance_weight: float  
     
-class WorkoutExerciseMaster(WorkoutExerciseBase):
-    id: int | None = Field(default=None, primary_key=True)
-    uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True))
-    workout_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("workout.id", ondelete="CASCADE")))
-    exercise_uuid: UUID = Field(default=None, sa_column=Column(GUID(), ForeignKey("exercise.uuid", ondelete="CASCADE"), index=True))
-    user_uuid: UUID | None = Field(default=None, sa_column=Column(GUID(), ForeignKey("user.uuid", ondelete="CASCADE")))
+class WorkoutExerciseTableBase(WorkoutExerciseBase):
+    id: int | None = Field(default=None, primary_key=True, index=True)
+    uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True, index=True))
+    workout_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("workout.id", ondelete="CASCADE"), index=True))
+    exercise_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("exercise.id", ondelete="CASCADE"), index=True))
+    user_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), index=True))
     
 
 class WorkoutExerciseCreateReq(WorkoutExerciseBase):
