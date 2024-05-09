@@ -1,3 +1,4 @@
+
 from datetime import datetime
 from uuid import UUID
 from uuid import uuid4 as new_uuid
@@ -8,11 +9,11 @@ from models.utility import GUID
 
 
 
-class ExerciseBase(SQLModel):
+class CustomExerciseBase(SQLModel):
     name: str 
     description: str = Field(Column(Text)) 
 
-class ExerciseTableBase(ExerciseBase):
+class CustomExerciseTableBase(CustomExerciseBase):
     id: int | None = Field(default=None, primary_key=True, index=True)
     uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True, index=True))
     workout_category_id: int | None = Field(default=None, foreign_key="workoutcategory.id", index=True)
@@ -21,14 +22,14 @@ class ExerciseTableBase(ExerciseBase):
     major_muscle_id: int | None = Field(default=None, foreign_key="majormuscle.id", index=True)
     
 
-class ExerciseCreateReq(ExerciseBase):
+class CustomExerciseCreateReq(CustomExerciseBase):
     workout_category: str 
     movement_category: str 
     equipment: str 
     major_muscle: str 
     specific_muscles: list[str] 
 
-class ExercisePatchReq(ExerciseBase):
+class CustomExercisePatchReq(CustomExerciseBase):
     name: str | None = None
     description: str | None = None
     workout_category: str | None = None

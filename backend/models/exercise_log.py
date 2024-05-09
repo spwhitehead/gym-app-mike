@@ -16,6 +16,7 @@ class ExerciseLogTableBase(ExerciseLogBase):
     uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True,  index=True))
     user_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), index=True))
     exercise_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("exercise.id", ondelete="CASCADE"), index=True))
+    custom_exercise_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("customexercise.id", ondelete="CASCADE"), index=True))
     
 class ExerciseLogCreateReq(ExerciseLogBase):
     exercise_uuid: UUID
