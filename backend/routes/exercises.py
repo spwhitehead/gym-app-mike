@@ -3,6 +3,7 @@ from uuid import UUID
 from functools import lru_cache
 from fastapi import APIRouter, HTTPException, status, Depends
 from sqlmodel import Session, select
+from routes.authorization import get_current_user
 
 
 from db import engine, get_db
@@ -11,20 +12,21 @@ from models.exercise import ExerciseCreateReq, ExercisePatchReq
 
 from models.responses import ExerciseResponse, ExerciseListResponse, ExerciseResponseData
 
-from models.relationship_merge import ExerciseSpecificMuscleLink, WorkoutCategory, MovementCategory, MajorMuscle, SpecificMuscle, Equipment, Exercise
+from models.relationship_merge import ExerciseSpecificMuscleLink, WorkoutCategory, MovementCategory, MajorMuscle, SpecificMuscle, Equipment, Exercise, User
 
 router = APIRouter()
 
 @lru_cache(maxsize=1000)
-def get_all_exercises_cached(session: Session) -> list[ExerciseResponseData]:
-    exercises = session.exec(select(Exercise)).all()
-    data = [ExerciseResponseData.from_orm(exercise) for exercise in exercises]
-    return data
+def get_all_exercises_cached() -> list[ExerciseResponseData]:
+    with Session(engine) as session:
+        exercises = session.exec(select(Exercise)).all()
+        data = [ExerciseResponseData.from_orm(exercise) for exercise in exercises]
+        return data
         
 # Exercises
 @router.get("/exercises", response_model=ExerciseListResponse, status_code=status.HTTP_200_OK)
-async def get_exercises(session: Session = Depends(get_db)) -> ExerciseListResponse:
-    data = get_all_exercises_cached(session)
+async def get_exercises(current_user: User = Depends(get_current_user)) -> ExerciseListResponse:
+    data = get_all_exercises_cached()
     return ExerciseListResponse(data=data, detail="Exercises fetched successfully.")
 
 
