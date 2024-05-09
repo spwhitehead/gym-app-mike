@@ -1,3 +1,4 @@
+from uuid import UUID
 from sqlmodel import SQLModel, Relationship, Field, Column, Integer, ForeignKey
 from models.user import UserTableBase
 from models.exercise import ExerciseTableBase
@@ -7,6 +8,17 @@ from models.workout_exercise import WorkoutExerciseTableBase
 from models.workout import WorkoutTableBase
 
 ### Exercise Specific Muscle Link
+
+class UserRoleLink(SQLModel, table=True):
+    user_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), primary_key=True, index=True))
+    role_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("role.id", ondelete="CASCADE"), primary_key=True, index=True))
+
+    def __hash__(self):
+        return hash((self.user_id, self.role_id))
+    
+    def __eq__(self, other):
+        if isinstance(other, UserRoleLink):
+            return (self.user_id == other.user_id and self.role_id == other.role_id)
 
 class ExerciseSpecificMuscleLink(SQLModel, table=True):
     exercise_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("exercise.id", ondelete="CASCADE"), primary_key=True,  index=True))
@@ -54,7 +66,8 @@ class ExerciseLog(ExerciseLogTableBase, table=True):
     custom_exercise: 'CustomExercise' = Relationship(back_populates="exercise_logs")
     
 class User(UserTableBase, table=True):
-    exercise_logs: list['ExerciseLog'] = Relationship(back_populates="user")
+    exercise_logs: list['ExerciseLog'] = Relationship(back_populates="user", sa_relationship_kwargs={"lazy": "select"})
+    roles: list['Role'] = Relationship(back_populates="users", link_model=UserRoleLink, sa_relationship_kwargs={"lazy": "select"})
 
 class WorkoutExercise(WorkoutExerciseTableBase, table=True):
     workout: 'Workout' = Relationship(back_populates="workout_exercises")
@@ -62,7 +75,11 @@ class WorkoutExercise(WorkoutExerciseTableBase, table=True):
 class Workout(WorkoutTableBase, table=True):
     workout_exercises: list['WorkoutExercise'] = Relationship(back_populates="workout")
 
+class Role(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True, index=True)
+    name: str = Field(unique=True, index=True)
 
+    users: list['User'] = Relationship(back_populates="roles", link_model=UserRoleLink)
 
 
 

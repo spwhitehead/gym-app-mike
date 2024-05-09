@@ -1,11 +1,9 @@
-from datetime import datetime
 from uuid import UUID
 from uuid import uuid4 as new_uuid
 
-from sqlmodel import SQLModel, Field, Column, Relationship, Integer, ForeignKey, Text
+from sqlmodel import SQLModel, Field, Column, Text
 
-from models.utility import GUID
-
+from utilities.guid import GUID
 
 
 class ExerciseBase(SQLModel):

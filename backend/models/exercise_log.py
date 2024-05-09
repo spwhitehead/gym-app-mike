@@ -2,9 +2,9 @@ from uuid import UUID
 from uuid import uuid4 as new_uuid
 from datetime import datetime
 
-from sqlmodel import SQLModel, Field, Column, Relationship, ForeignKey, Integer
+from sqlmodel import SQLModel, Field, Column, ForeignKey, Integer
 
-from models.utility import GUID
+from utilities.guid import GUID
 
 class ExerciseLogBase(SQLModel):
     datetime_completed: datetime

@@ -10,7 +10,7 @@ from typing import Sequence, Union
 from alembic import op
 import sqlmodel
 import sqlalchemy as sa
-import models.utility
+import utilities.guid
 
 
 # revision identifiers, used by Alembic.
@@ -26,7 +26,7 @@ def upgrade() -> None:
     sa.Column('name', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('description', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('uuid', models.utility.GUID(), nullable=True),
+    sa.Column('uuid', utilities.guid.GUID(), nullable=True),
     sa.Column('workout_category_id', sa.Integer(), nullable=True),
     sa.Column('movement_category_id', sa.Integer(), nullable=True),
     sa.Column('equipment_id', sa.Integer(), nullable=True),

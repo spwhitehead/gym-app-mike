@@ -6,7 +6,7 @@ from sqlmodel import (
     Column, Integer, ForeignKey, CHAR
     )
 
-from models.utility import GUID
+from utilities.guid import GUID
 
 class WorkoutBase(SQLModel):
     name: str

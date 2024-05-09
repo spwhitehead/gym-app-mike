@@ -6,7 +6,8 @@ from uuid import uuid4 as new_uuid
 from pydantic import field_validator, ConfigDict
 from sqlmodel import SQLModel, Field, Enum as SQLEnum, Column, Relationship
 
-from models.utility import GUID, HashedPassword
+from utilities.guid import GUID
+from utilities.hashed_password import HashedPassword
 from models.enums import Gender
 
 class UserBase(SQLModel):

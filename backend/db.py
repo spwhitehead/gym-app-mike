@@ -6,7 +6,7 @@ from sqlalchemy import event, inspect, Engine
 from models.relationship_merge import (
     ExerciseLog, Exercise, ExerciseSpecificMuscleLink, WorkoutExercise, Workout, User, 
     WorkoutCategory, MovementCategory, BandColor, MajorMuscle, SpecificMuscle,
-    Equipment, CustomExercise, CustomExerciseSpecificMuscleLink
+    Equipment, CustomExercise, CustomExerciseSpecificMuscleLink, UserRoleLink, Role
 )
         
 def setup_database(engine: Engine):
@@ -32,6 +32,10 @@ def populate_initial_category_items(engine: Engine):
             for item in new_items:
                 if item not in existing_items:
                     session.add(model(name=item))
+        roles = {"User", "Admin"}
+        for role in roles:
+            if not session.exec(select(Role).where(Role.name == role)).first():
+                session.add(Role(name=role)) 
         
         band_colors = {"Yellow", "Red", "Green", "Black", "Purple", "Green", "Orange", "Gray"}  # Use set for uniqueness
         existing_colors = {color.name for color in session.exec(select(BandColor))}

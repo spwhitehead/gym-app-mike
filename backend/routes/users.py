@@ -7,6 +7,7 @@ from db import engine, get_db
 from models.user import UserCreateReq, UserPatchReq
 from models.relationship_merge import User
 from models.responses import UserResponseData, UserResponse, UserListResponse
+from models.relationship_merge import Role
 
 router = APIRouter()
 
@@ -28,6 +29,8 @@ async def get_user(user_uuid: UUID, session: Session = Depends(get_db)) -> UserR
 @router.post("/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def add_user(create_user_request: UserCreateReq, session: Session = Depends(get_db)) -> UserResponse:
     user = User.model_validate(create_user_request.model_dump())
+    user_role = session.exec(select(Role).where(Role.name == "User")).first()
+    user.roles.append(user_role)
     session.add(user)
     print(type(user.uuid))
     session.commit()

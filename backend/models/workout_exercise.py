@@ -3,7 +3,7 @@ from uuid import uuid4 as new_uuid
 
 from sqlmodel import SQLModel, Field, Enum as SQLEnum, Column, ForeignKey, Relationship, Integer
 
-from models.utility import GUID
+from utilities.guid import GUID
 
 
 class WorkoutExerciseBase(SQLModel):
