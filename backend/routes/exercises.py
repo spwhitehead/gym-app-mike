@@ -1,8 +1,9 @@
 
 from uuid import UUID
+from typing import Annotated
 from functools import lru_cache
-from fastapi import APIRouter, HTTPException, status, Depends
-from sqlmodel import Session, select
+from fastapi import APIRouter, HTTPException, status, Depends, Security
+from sqlmodel import Session, select, or_ 
 from routes.authorization import get_current_user
 
 
@@ -14,24 +15,57 @@ from models.responses import ExerciseResponse, ExerciseListResponse, ExerciseRes
 
 from models.relationship_merge import ExerciseSpecificMuscleLink, WorkoutCategory, MovementCategory, MajorMuscle, SpecificMuscle, Equipment, Exercise, User
 
+from utilities.authorization import check_roles
+
 router = APIRouter()
 
 @lru_cache(maxsize=1000)
-def get_all_exercises_cached() -> list[ExerciseResponseData]:
+def get_all_exercises_cached(current_user: User) -> list[ExerciseResponseData]:
     with Session(engine) as session:
-        exercises = session.exec(select(Exercise)).all()
+        exercises = session.exec(select(Exercise).where(or_(Exercise.user_id == current_user.id, Exercise.user_id == None))).all()
         data = [ExerciseResponseData.from_orm(exercise) for exercise in exercises]
+        data.sort(key=lambda exercise: exercise.name)
+        return data
+
+@lru_cache(maxsize=1000)
+def get_user_created_exercises_cached(current_user: User) -> list[ExerciseResponseData]:
+    with Session(engine) as session:
+        exercises = session.exec(select(Exercise).where(Exercise.user_id == current_user.id)).all()
+        data = [ExerciseResponseData.from_orm(exercise) for exercise in exercises]
+        data.sort(key=lambda exercise: exercise.name)
         return data
         
+def get_specific_exercise_from_current_user(current_user: User, exercise_uuid: UUID, session: Session) -> Exercise:
+    current_user = session.exec(select(User).where(User.id == current_user.id)).first()
+    current_user_roles = [role.name for role in current_user.roles]
+    if "User" in current_user_roles:
+        exercise = session.exec(select(Exercise).where(Exercise.uuid == exercise_uuid).where(Exercise.user_id == current_user.id)).first()
+    elif "Admin" in current_user_roles:
+        exercise = session.exec(select(Exercise).where(Exercise.uuid == exercise_uuid).where(Exercise.user_id == None)).first()
+    if not exercise:
+        if session.exec(select(Exercise).where(Exercise.uuid == exercise_uuid)).first():
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"User does not have permission to update Exercise UUID: {exercise_uuid}.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Exercise UUID: {exercise_uuid} not found.")
+    return exercise 
+        
 # Exercises
-@router.get("/exercises", response_model=ExerciseListResponse, status_code=status.HTTP_200_OK)
-async def get_exercises(current_user: User = Depends(get_current_user)) -> ExerciseListResponse:
-    data = get_all_exercises_cached()
+@router.get("/exercises", response_model=ExerciseListResponse, status_code=status.HTTP_200_OK, tags=["Admin", "User"])
+@check_roles(["User", "Admin"])
+async def get_all_exercises(current_user: Annotated[User, Security(get_current_user)]) -> ExerciseListResponse:
+    data = get_all_exercises_cached(current_user)
     return ExerciseListResponse(data=data, detail="Exercises fetched successfully.")
 
+@router.get("/exercises/user-created", response_model=ExerciseListResponse, status_code=status.HTTP_200_OK)
+@check_roles(["User"])
+async def get_user_created_exercises(current_user: Annotated[User, Security(get_current_user)]) -> ExerciseListResponse:
+        data = get_user_created_exercises_cached(current_user)
+        return ExerciseListResponse(data=data, detail="User created exercises fetched successfully.")
 
-@router.get("/exercises/{exercise_uuid:uuid}", response_model=ExerciseResponse, status_code=status.HTTP_200_OK)
-async def get_exercise(exercise_uuid: UUID, session: Session = Depends(get_db)) -> ExerciseResponse:
+
+@router.get("/exercises/{exercise_uuid:uuid}", response_model=ExerciseResponse, status_code=status.HTTP_200_OK, tags=["Admin", "User"])
+@check_roles(["User", "Admin"])
+async def get_exercise(current_user: Annotated[User, Security(get_current_user)], exercise_uuid: UUID, session: Session = Depends(get_db)) -> ExerciseResponse:
+    current_user = session.exec(select(User).where(User.id == current_user.id)).first()
     exercise = session.exec(select(Exercise).where(Exercise.uuid == exercise_uuid)).first()
     if not exercise:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Exercise UUID: {exercise_uuid} not found.")
@@ -39,8 +73,10 @@ async def get_exercise(exercise_uuid: UUID, session: Session = Depends(get_db)) 
     return ExerciseResponse(data=data, detail="Exercise fetched successfully.")
 
 
-@router.post("/exercises", response_model=ExerciseResponse, status_code=status.HTTP_201_CREATED)
-async def add_exercise(exercise_post_request: ExerciseCreateReq, session: Session = Depends(get_db)) -> ExerciseResponse:
+@router.post("/exercises/create", response_model=ExerciseResponse, status_code=status.HTTP_201_CREATED, tags=["Admin", "User"])
+@check_roles(["User", "Admin"])
+async def add_exercise(current_user: Annotated[User, Security(get_current_user)], exercise_post_request: ExerciseCreateReq, session: Session = Depends(get_db)) -> ExerciseResponse:
+    current_user = session.exec(select(User).where(User.id == current_user.id)).first()
     workout_category_id = session.exec(select(WorkoutCategory.id).where(WorkoutCategory.name == exercise_post_request.workout_category)).first()
     movement_category_id = session.exec(select(MovementCategory.id).where(MovementCategory.name == exercise_post_request.movement_category)).first()
     major_muscle_id = session.exec(select(MajorMuscle.id).where(MajorMuscle.name == exercise_post_request.major_muscle)).first()
@@ -62,12 +98,14 @@ async def add_exercise(exercise_post_request: ExerciseCreateReq, session: Sessio
         if not specific_muscle_id:
             valid_options = session.exec(select(SpecificMuscle.name)).all()
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Specific Muscle '{specific_muscle}' is not a valid option. These are valid options: {valid_options}")
+    current_user_roles = [role.name for role in current_user.roles]
     exercise = Exercise.model_validate(exercise_post_request.model_dump(
         exclude={"specific_muscles"}),
         update={"workout_category_id":workout_category_id,
                 "movement_category_id": movement_category_id,
                 "major_muscle_id": major_muscle_id,
-                "equipment_id":equipment_id
+                "equipment_id":equipment_id,
+                "user_id":current_user.id if "User" in current_user_roles else None
                 }
         )
     session.add(exercise)
@@ -83,11 +121,10 @@ async def add_exercise(exercise_post_request: ExerciseCreateReq, session: Sessio
     return ExerciseResponse(data=data, detail=f"Exercise added successfully.")
             
 
-@router.put("/exercises/{exercise_uuid:uuid}", response_model=ExerciseResponse, status_code=status.HTTP_200_OK) 
-async def update_exercise(exercise_uuid: UUID, exercise_put_request: ExerciseCreateReq, session: Session = Depends(get_db)) -> ExerciseResponse:
-    exercise = session.exec(select(Exercise).where(Exercise.uuid == exercise_uuid)).first()
-    if not exercise:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Exercise UUID: {exercise_uuid} not found.")
+@router.put("/exercises/{exercise_uuid:uuid}", response_model=ExerciseResponse, status_code=status.HTTP_200_OK, tags=["Admin"]) 
+@check_roles(["User", "Admin"])
+async def update_exercise(current_user: Annotated[User, Security(get_current_user)], exercise_uuid: UUID, exercise_put_request: ExerciseCreateReq, session: Session = Depends(get_db)) -> ExerciseResponse:
+    exercise = get_specific_exercise_from_current_user(current_user, exercise_uuid, session)
     for attr,value in exercise_put_request.model_dump(exclude={"workout_category", "movement_category", "equipment", "major_muscle","specific_muscles"}).items():
         setattr(exercise, attr, value)
     workout_category_id = session.exec(select(WorkoutCategory.id).where(WorkoutCategory.name == exercise_put_request.workout_category)).first()
@@ -118,13 +155,13 @@ async def update_exercise(exercise_uuid: UUID, exercise_put_request: ExerciseCre
     session.refresh(exercise)
     data =  ExerciseResponseData.from_orm(exercise)
     get_all_exercises_cached.cache_clear()
+    get_user_created_exercises_cached.cache_clear()
     return ExerciseResponse(data=data, detail=f"Exercise updated successfully.")
 
-@router.patch("/exercises/{exercise_uuid:uuid}", response_model=ExerciseResponse, status_code=status.HTTP_200_OK)
-async def update_exercise(exercise_uuid: UUID, exercise_patch_request: ExercisePatchReq, session: Session = Depends(get_db)) -> ExerciseResponse:
-    exercise = session.exec(select(Exercise).where(Exercise.uuid == exercise_uuid)).first()
-    if not exercise:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Exercise UUID: {exercise_uuid} not found.")
+@router.patch("/exercises/{exercise_uuid:uuid}", response_model=ExerciseResponse, status_code=status.HTTP_200_OK, tags=["Admin"])
+@check_roles(["User", "Admin"])
+async def update_exercise(current_user: Annotated[User, Security(get_current_user)], exercise_uuid: UUID, exercise_patch_request: ExercisePatchReq, session: Session = Depends(get_db)) -> ExerciseResponse:
+    exercise = get_specific_exercise_from_current_user(current_user, exercise_uuid, session)
     with session.no_autoflush:
         for attr, value in exercise_patch_request.model_dump(exclude_unset=True).items():
             match attr:
@@ -166,13 +203,15 @@ async def update_exercise(exercise_uuid: UUID, exercise_patch_request: ExerciseP
     session.refresh(exercise)
     data = ExerciseResponseData.from_orm(exercise)
     get_all_exercises_cached.cache_clear()
+    get_user_created_exercises_cached.cache_clear()
     return ExerciseResponse(data=data, detail=f"Exercise patched successfully.")
 
-@router.delete("/exercises/{exercise_uuid:uuid}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_exercise(exercise_uuid: UUID, session: Session = Depends(get_db)):
-    exercise = session.exec(select(Exercise).where(Exercise.uuid == exercise_uuid)).first()
-    if not exercise:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Exercise UUID: {exercise_uuid} not found.")
+@router.delete("/exercises/{exercise_uuid:uuid}", status_code=status.HTTP_204_NO_CONTENT, tags=["Admin"])
+@check_roles(["User", "Admin"])
+async def delete_exercise(current_user: Annotated[User, Security(get_current_user)], exercise_uuid: UUID, session: Session = Depends(get_db)):
+    exercise = get_specific_exercise_from_current_user(current_user, exercise_uuid, session)
     session.delete(exercise)
     session.commit()
     get_all_exercises_cached.cache_clear()
+    get_user_created_exercises_cached.cache_clear()
+

@@ -1,5 +1,5 @@
 from datetime import date
-from typing import ClassVar
+from typing import Any, ClassVar
 from uuid import UUID
 from uuid import uuid4 as new_uuid
 
@@ -29,6 +29,14 @@ class UserBase(SQLModel):
             return Gender[value.upper()]
         except KeyError as e:
             raise ValueError(f"resistance_type must be one of: {valid_values}. Error: {str(e)}")
+    
+    def __hash__(self):
+        return hash(self.username)
+
+    def __eq__(self, other: Any):
+        if not isinstance(other, UserBase):
+            return False
+        return self.username == other.username
 
 class UserTableBase(UserBase):
     id: int | None = Field(default=None, primary_key=True, index=True)

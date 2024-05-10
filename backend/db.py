@@ -6,7 +6,7 @@ from sqlalchemy import event, inspect, Engine
 from models.relationship_merge import (
     ExerciseLog, Exercise, ExerciseSpecificMuscleLink, WorkoutExercise, Workout, User, 
     WorkoutCategory, MovementCategory, BandColor, MajorMuscle, SpecificMuscle,
-    Equipment, CustomExercise, CustomExerciseSpecificMuscleLink, UserRoleLink, Role
+    Equipment, UserRoleLink, Role
 )
         
 def setup_database(engine: Engine):
@@ -48,9 +48,9 @@ def populate_exercise_data(engine: Engine):
         exercise_data = json.load(file)
     with Session(bind=engine) as session:
         for exercise in exercise_data:
-            if session.exec(select(Exercise).where(Exercise.name == exercise["name"])).first():
+            if session.exec(select(Exercise).where(Exercise.name == exercise["name"].title())).first():
                 break
-            name = exercise["name"]
+            name = exercise["name"].title()
             description = " ".join(exercise["description"])
             
             workout_category_name = exercise.get("workoutCategory", "").title()

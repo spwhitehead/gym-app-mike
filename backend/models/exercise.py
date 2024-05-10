@@ -17,6 +17,7 @@ class ExerciseTableBase(ExerciseBase):
     movement_category_id: int | None = Field(default=None, foreign_key="movementcategory.id", index=True)
     equipment_id: int | None = Field(default=None, foreign_key="equipment.id", index=True)
     major_muscle_id: int | None = Field(default=None, foreign_key="majormuscle.id", index=True)
+    user_id: int | None = Field(default=None, foreign_key="user.id", index=True)
     
 
 class ExerciseCreateReq(ExerciseBase):
