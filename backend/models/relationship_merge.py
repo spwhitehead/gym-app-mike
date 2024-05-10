@@ -57,7 +57,7 @@ class Workout(WorkoutTableBase, table=True):
 
 class Role(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True, index=True)
-    name: str = Field(unique=True, index=True)
+    name: str = Field(unique=True, index=True, unique_items=True)
 
     users: list['User'] = Relationship(back_populates="roles", link_model=UserRoleLink)
 

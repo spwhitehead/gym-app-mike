@@ -14,6 +14,7 @@ class WorkoutExerciseBase(SQLModel):
 class WorkoutExerciseTableBase(WorkoutExerciseBase):
     id: int | None = Field(default=None, primary_key=True, index=True)
     uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True, index=True))
+    exercise_order: int | None = Field(default=None, index=True)
     workout_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("workout.id", ondelete="CASCADE"), index=True))
     exercise_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("exercise.id", ondelete="CASCADE"), index=True))
     user_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), index=True))
