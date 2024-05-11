@@ -39,7 +39,7 @@ setup_logging()
 async def get_users_and_admins(current_user: Annotated[User, Security(get_current_user)], session: Session = Depends(get_db)) -> UserListResponse:
     current_user = session.exec(select(User).where(User.id == current_user.id)).first()
     users = session.exec(select(User)).all()
-    data = [UserResponseData.model_validate(user) for user in users]
+    data = [UserResponseData.model_validate(user, update={"roles":[role.name for role in user.roles]}) for user in users]
     return UserListResponse(data=data, detail=f"{len(data)} users fetched successfully." if len(data) != 1 else f"{len(data)} user fetched successfully.")
 
 @router.get("/users/me", response_model=UserResponse, status_code=status.HTTP_200_OK)
@@ -47,21 +47,21 @@ async def get_users_and_admins(current_user: Annotated[User, Security(get_curren
 async def get_logged_in_user(current_user: Annotated[User, Security(get_current_user)], session: Session = Depends(get_db)) -> UserResponse:
     logging.debug("Entered get_current_user")
     current_user = session.exec(select(User).where(User.id == current_user.id)).first()
-    data = UserResponseData.model_validate(current_user)
+    data = UserResponseData.model_validate(current_user, update={"roles":[role.name for role in current_user.roles]})
     return UserResponse(data=data, detail="User fetched successfully.")
 
 @router.get("/users/admins", response_model=UserListResponse, status_code=status.HTTP_200_OK)
 @check_roles(["Admin"])
 async def get_admins(current_user: Annotated[User, Security(get_current_user)], session: Session = Depends(get_db)) -> UserListResponse:
     admins = session.exec(select(User).join(User.roles).where(Role.name == "Admin")).all()
-    data = [UserResponseData.model_validate(admin) for admin in admins]
+    data = [UserResponseData.model_validate(admin, update={"roles": [role.name for role in admin.roles]}) for admin in admins]
     return UserListResponse(data=data, detail=f"{len(data)} admins fetched successfully." if len(data) != 1 else f"{len(data)} admin fetched successfully.")
 
 @router.get("/users/users", response_model=UserListResponse, status_code=status.HTTP_200_OK)
 @check_roles(["Admin"])
 async def get_users(current_user: Annotated[User, Security(get_current_user)], session: Session = Depends(get_db)) -> UserListResponse:
     users = session.exec(select(User).join(User.roles).where(Role.name == "User")).all()
-    data = [UserResponseData.model_validate(user) for user in users]
+    data = [UserResponseData.model_validate(user, update={"roles": [role.name for role in user.roles]}) for user in users]
     return UserListResponse(data=data, detail=f"{len(data)} users fetched successfully." if len(data) != 1 else f"{len(data)} user fetched successfully.")
 
 @router.get("/users/{user_uuid:uuid}", response_model=UserResponse, status_code=status.HTTP_200_OK)
@@ -71,7 +71,7 @@ async def get_specific_user(current_user: Annotated[User, Security(get_current_u
     user = session.exec(select(User).where(User.uuid == user_uuid)).first()
     if not current_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User UUID: {user_uuid} not found.")
-    data = UserResponseData.model_validate(user)
+    data = UserResponseData.model_validate(user, update={"roles": [role.name for role in user.roles]})
     return UserResponse(data=data, detail="User fetched successfully.")
 
 # Post Requests
@@ -88,7 +88,7 @@ async def add_user(create_user_request: UserCreateReq, session: Session = Depend
     print(type(user.uuid))
     session.commit()
     session.refresh(user)
-    data = UserResponseData.model_validate(user)
+    data = UserResponseData.model_validate(user, update={"roles": [role.name for role in user.roles]})
     return UserResponse(data=data, detail="New User has been added.")
 
 # Put Requests
@@ -103,7 +103,7 @@ async def update_logged_in_user(current_user: Annotated[User, Security(get_curre
         setattr(current_user, attr, value) 
     session.commit()
     session.refresh(current_user)
-    data = UserResponseData.model_validate(current_user)
+    data = UserResponseData.model_validate(current_user, update={"roles": [role.name for role in current_user.roles]})
     return UserResponse(data=data, detail="User updated.")
 
 @router.put("/users/{user_uuid:uuid}", response_model=UserResponse, status_code=status.HTTP_200_OK, tags=["Admin"])
@@ -116,7 +116,7 @@ async def update_user(current_user: Annotated[User, Security(get_current_user)],
         setattr(user, attr, value) 
     session.commit()
     session.refresh(user)
-    data = UserResponseData.model_validate(user)
+    data = UserResponseData.model_validate(user, update={"roles": [role.name for role in user.roles]})
     return UserResponse(data=data, detail="User updated.")
 
 # Patch Requests
@@ -131,7 +131,7 @@ async def patch_logged_in_user(current_user: Annotated[User, Security(get_curren
         setattr(current_user, attr, value) 
     session.commit()
     session.refresh(current_user)
-    data = UserResponseData.model_validate(current_user)
+    data = UserResponseData.model_validate(current_user, update={"roles": [role.name for role in current_user.roles]})
     return UserResponse(data=data, detail="User updated.")
 
 @router.patch("/users/{user_uuid:uuid}", response_model=UserResponse, status_code=status.HTTP_200_OK, tags=["Admin"])
@@ -144,7 +144,7 @@ async def patch_user(current_user: Annotated[User, Security(get_current_user)], 
         setattr(user, attr, value) 
     session.commit()
     session.refresh(user)
-    data = UserResponseData.model_validate(user)
+    data = UserResponseData.model_validate(user, update={"roles": [role.name for role in user.roles]})
     return UserResponse(data=data, detail="User updated.")
 
 @router.patch("/users/me/username", response_model=UserResponse, status_code=status.HTTP_200_OK, tags=["User", "Admin"])
@@ -158,7 +158,7 @@ async def patch_logged_in_user_username(current_user: Annotated[User, Security(g
     current_user.username = update_user_request.username
     session.commit()
     session.refresh(current_user)
-    data = UserResponseData.model_validate(current_user)
+    data = UserResponseData.model_validate(current_user, update={"roles": [role.name for role in current_user.roles]})
     return UserResponse(data=data, detail="User updated.")
 
 @router.patch("/users/{user_uuid:uuid}/username", response_model=UserResponse, status_code=status.HTTP_200_OK, tags=["Admin"])
@@ -172,7 +172,7 @@ async def patch_user_username(current_user: Annotated[User, Security(get_current
     user.username = update_user_request.username
     session.commit()
     session.refresh(user)
-    data = UserResponseData.model_validate(user)
+    data = UserResponseData.model_validate(user, update={"roles": [role.name for role in user.roles]})
     return UserResponse(data=data, detail="User updated.")
 
 @router.patch("/users/me/password", response_model=UserResponse, status_code=status.HTTP_200_OK, tags=["User", "Admin"])
@@ -184,7 +184,7 @@ async def patch_logged_in_user_password(current_user: Annotated[User, Security(g
     current_user.hashed_password = update_user_request.password
     session.commit()
     session.refresh(current_user)
-    data = UserResponseData.model_validate(current_user)
+    data = UserResponseData.model_validate(current_user, update={"roles": [role.name for role in current_user.roles]})
     return UserResponse(data=data, detail="User updated.")
 
 @router.patch("/users/{user_uuid:uuid}/password", response_model=UserResponse, status_code=status.HTTP_200_OK, tags=["Admin"])
@@ -196,22 +196,27 @@ async def patch_user_password(current_user: Annotated[User, Security(get_current
     user.hashed_password = update_user_request.password
     session.commit()
     session.refresh(user)
-    data = UserResponseData.model_validate(user)
+    data = UserResponseData.model_validate(user, update={"roles": [role.name for role in user.roles]})
     return UserResponse(data=data, detail="User updated.")
 
-@router.patch("/users/{user_uuid:uuid}/role", response_model=UserResponse, status_code=status.HTTP_200_OK, tags=["Admin"])
+@router.patch("/users/{user_uuid:uuid}/roles", response_model=UserResponse, status_code=status.HTTP_200_OK, tags=["Admin"])
 @check_roles(["Admin"])
 async def patch_user_role(current_user: Annotated[User, Security(get_current_user)], user_uuid: UUID, update_user_request: UserRolePatchReq, session: Session = Depends(get_db)) -> UserResponse:
+    if current_user.uuid == user_uuid:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You cannot change your own roles.")
     user = session.exec(select(User).where(User.uuid == user_uuid)).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User UUID: {user_uuid} not found.")
-    role = session.exec(select(Role).where(Role.name == update_user_request.role)).first()
-    if not role:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Role: {update_user_request.role} not found.")
-    user.roles = [role]
+    roles = []
+    for role in update_user_request.roles:
+        role = session.exec(select(Role).where(Role.name == role)).first()
+        if not role:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Role: {role} not found.")
+        roles.append(role)
+    user.roles = roles 
     session.commit()
     session.refresh(user)
-    data = UserResponseData.model_validate(user)
+    data = UserResponseData.model_validate(user, update={"roles": [role.name for role in user.roles]})
     return UserResponse(data=data, detail="User updated.")
 
 # Delete Requests 

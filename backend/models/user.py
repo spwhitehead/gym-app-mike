@@ -63,9 +63,9 @@ class UserPatchReq(UserBase):
     height: int | None = None
     gender: Gender | None = None
 
-class UserUsernamePatchReq(UserBase):
+class UserUsernamePatchReq(SQLModel):
     username: str | None = None
 class UserPasswordPatchReq(SQLModel):
     password: str | None = None
-class UserRolePatchReq(UserBase):
-    role: str | None = None
+class UserRolePatchReq(SQLModel):
+    roles: list[str] | None = None

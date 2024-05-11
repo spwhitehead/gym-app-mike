@@ -77,6 +77,7 @@ class WorkoutListResponse(SQLModel):
 
 class UserResponseData(UserBase):
     uuid: UUID
+    roles: list[str]
     
 class UserResponse(SQLModel):
     data: UserResponseData
