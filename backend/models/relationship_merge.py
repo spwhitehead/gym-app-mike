@@ -6,8 +6,12 @@ from models.exercise_log import ExerciseLogTableBase
 from models.workout_exercise import WorkoutExerciseTableBase
 from models.workout import WorkoutTableBase
 
-### Exercise Specific Muscle Link
-
+class WorkoutExerciseWorkoutOrderLink(SQLModel, table=True):
+    id: int = Field(default=None, primary_key=True, index=True)
+    workout_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("workout.id", ondelete="CASCADE"), index=True))
+    workout_exercise_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("workoutexercise.id", ondelete="CASCADE"), primary_key=True, index=True))
+    exercise_order: int
+    
 class UserRoleLink(SQLModel, table=True):
     user_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), primary_key=True, index=True))
     role_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("role.id", ondelete="CASCADE"), primary_key=True, index=True))
@@ -50,10 +54,10 @@ class User(UserTableBase, table=True):
     exercises: list['Exercise'] = Relationship(back_populates="user")
 
 class WorkoutExercise(WorkoutExerciseTableBase, table=True):
-    workout: 'Workout' = Relationship(back_populates="workout_exercises")
+    workout: list['Workout'] = Relationship(back_populates="workout_exercises", link_model=WorkoutExerciseWorkoutOrderLink)
 
 class Workout(WorkoutTableBase, table=True):
-    workout_exercises: list['WorkoutExercise'] = Relationship(back_populates="workout")
+    workout_exercises: list['WorkoutExercise'] = Relationship(back_populates="workout", link_model=WorkoutExerciseWorkoutOrderLink)
 
 class Role(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True, index=True)

@@ -45,13 +45,13 @@ async def add_workout_exercise(user_uuid: UUID, workout_exercise_request: Workou
     exercise = session.exec(select(Exercise).where(Exercise.uuid == workout_exercise_request.exercise_uuid)).first()
     if not exercise:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Exercise UUID: {workout_exercise_request.exercise_uuid} not found.")
-    workout_exercise = WorkoutExercise.model_validate(workout_exercise_request.model_dump(), update={"user_id": user.id, "exercise_id": exercise.id})
+    workout_exercise = WorkoutExercise.model_validate(workout_exercise_request.model_dump(), update={"user_id": user.id, "exercise_id": exercise.id, "exercise_order": None})
     session.add(workout_exercise)
     session.commit()
     session.refresh(workout_exercise)
     session.refresh(exercise)
     exercise_data = ExerciseResponseData.model_validate(ExerciseResponseData.from_orm(exercise))
-    data = WorkoutExerciseResponseData.model_validate(workout_exercise, update={"exercise":exercise_data})
+    data = WorkoutExerciseResponseData.model_validate(workout_exercise, update={"exercise": exercise_data})
     return WorkoutExerciseResponse(data=data, detail="Workout Exercise added successfully.")
 
 @router.put("/users/{user_uuid:uuid}/workout-exercises/{workout_exercise_uuid}", response_model=WorkoutExerciseResponse, status_code=status.HTTP_200_OK)

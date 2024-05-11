@@ -12,7 +12,6 @@ from models.enums import Gender
 
 class UserBase(SQLModel):
     username: str = Field(unique=True)
-    hashed_password: str = Field(sa_column=Column(HashedPassword())) 
     first_name: str
     last_name: str
     birthday: date
@@ -41,14 +40,22 @@ class UserBase(SQLModel):
 class UserTableBase(UserBase):
     id: int | None = Field(default=None, primary_key=True, index=True)
     uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True, index=True))
+    hashed_password: str = Field(sa_column=Column(HashedPassword())) 
 
     Config: ClassVar = ConfigDict(arbitrary_types_allowed=True, json_encoders= {HashedPassword: lambda v: str(v)})
 
 class UserCreateReq(UserBase):
-    pass
+    hashed_password: str
+
+class UserPutReq(SQLModel):
+    first_name: str
+    last_name: str
+    birthday: date
+    body_weight: float
+    height: int
+    gender: Gender
+    
 class UserPatchReq(UserBase):
-    username: str | None = None
-    hashed_password: str | None = None
     first_name: str | None = None
     last_name: str | None = None
     birthday: date | None = None
@@ -56,3 +63,9 @@ class UserPatchReq(UserBase):
     height: int | None = None
     gender: Gender | None = None
 
+class UserUsernamePatchReq(UserBase):
+    username: str | None = None
+class UserPasswordPatchReq(SQLModel):
+    password: str | None = None
+class UserRolePatchReq(UserBase):
+    role: str | None = None

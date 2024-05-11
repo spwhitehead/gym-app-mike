@@ -47,7 +47,26 @@ def get_specific_exercise_from_current_user(current_user: User, exercise_uuid: U
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"User does not have permission to update Exercise UUID: {exercise_uuid}.")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Exercise UUID: {exercise_uuid} not found.")
     return exercise 
-        
+
+def verify_categories(workout_category_id: int, movement_category_id: int, major_muscle_id: int, equipment_id: int, exercise_post_request: ExerciseCreateReq, session: Session):
+    if not workout_category_id:
+        valid_options = session.exec(select(WorkoutCategory.name)).all()
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Workout category '{exercise_post_request.workout_category}' is not a valid option. These are valid options: {valid_options}")
+    if not movement_category_id:
+        valid_options = session.exec(select(MovementCategory.name)).all()
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Movement category '{exercise_post_request.movement_category}' is not a valid option. These are valid options: {valid_options}")
+    if not major_muscle_id:
+        valid_options = session.exec(select(MajorMuscle.name)).all()
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Major muscle '{exercise_post_request.major_muscle}' is not a valid option. These are valid options: {valid_options}")
+    if not equipment_id:
+        valid_options = session.exec(select(Equipment.name)).all()
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Equipment '{exercise_post_request.equipment}' is not a valid option. These are valid options: {valid_options}")
+    for specific_muscle in exercise_post_request.specific_muscles:
+        specific_muscle_id = session.exec(select(SpecificMuscle.id).where(SpecificMuscle.name == specific_muscle)).first()
+        if not specific_muscle_id:
+            valid_options = session.exec(select(SpecificMuscle.name)).all()
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Specific Muscle '{specific_muscle}' is not a valid option. These are valid options: {valid_options}")
+   
 # Exercises
 @router.get("/exercises", response_model=ExerciseListResponse, status_code=status.HTTP_200_OK, tags=["Admin", "User"])
 @check_roles(["User", "Admin"])
@@ -55,7 +74,7 @@ async def get_all_exercises(current_user: Annotated[User, Security(get_current_u
     data = get_all_exercises_cached(current_user)
     return ExerciseListResponse(data=data, detail="Exercises fetched successfully.")
 
-@router.get("/exercises/user-created", response_model=ExerciseListResponse, status_code=status.HTTP_200_OK)
+@router.get("/exercises/user-created", response_model=ExerciseListResponse, status_code=status.HTTP_200_OK, tags=["User"])
 @check_roles(["User"])
 async def get_user_created_exercises(current_user: Annotated[User, Security(get_current_user)]) -> ExerciseListResponse:
         data = get_user_created_exercises_cached(current_user)
@@ -81,23 +100,7 @@ async def add_exercise(current_user: Annotated[User, Security(get_current_user)]
     movement_category_id = session.exec(select(MovementCategory.id).where(MovementCategory.name == exercise_post_request.movement_category)).first()
     major_muscle_id = session.exec(select(MajorMuscle.id).where(MajorMuscle.name == exercise_post_request.major_muscle)).first()
     equipment_id = session.exec(select(Equipment.id).where(Equipment.name == exercise_post_request.equipment)).first()
-    if not workout_category_id:
-        valid_options = session.exec(select(WorkoutCategory.name)).all()
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Workout category '{exercise_post_request.workout_category}' is not a valid option. These are valid options: {valid_options}")
-    if not movement_category_id:
-        valid_options = session.exec(select(MovementCategory.name)).all()
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Movement category '{exercise_post_request.movement_category}' is not a valid option. These are valid options: {valid_options}")
-    if not major_muscle_id:
-        valid_options = session.exec(select(MajorMuscle.name)).all()
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Major muscle '{exercise_post_request.major_muscle}' is not a valid option. These are valid options: {valid_options}")
-    if not equipment_id:
-        valid_options = session.exec(select(Equipment.name)).all()
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Equipment '{exercise_post_request.equipment}' is not a valid option. These are valid options: {valid_options}")
-    for specific_muscle in exercise_post_request.specific_muscles:
-        specific_muscle_id = session.exec(select(SpecificMuscle.id).where(SpecificMuscle.name == specific_muscle)).first()
-        if not specific_muscle_id:
-            valid_options = session.exec(select(SpecificMuscle.name)).all()
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Specific Muscle '{specific_muscle}' is not a valid option. These are valid options: {valid_options}")
+    verify_categories(workout_category_id, movement_category_id, major_muscle_id, equipment_id, exercise_post_request, session)
     current_user_roles = [role.name for role in current_user.roles]
     exercise = Exercise.model_validate(exercise_post_request.model_dump(
         exclude={"specific_muscles"}),
@@ -118,10 +121,11 @@ async def add_exercise(current_user: Annotated[User, Security(get_current_user)]
     session.refresh(exercise)
     data = ExerciseResponseData.from_orm(exercise)
     get_all_exercises_cached.cache_clear()
+    get_user_created_exercises_cached.cache_clear()
     return ExerciseResponse(data=data, detail=f"Exercise added successfully.")
             
 
-@router.put("/exercises/{exercise_uuid:uuid}", response_model=ExerciseResponse, status_code=status.HTTP_200_OK, tags=["Admin"]) 
+@router.put("/exercises/{exercise_uuid:uuid}", response_model=ExerciseResponse, status_code=status.HTTP_200_OK, tags=["Admin", "User"]) 
 @check_roles(["User", "Admin"])
 async def update_exercise(current_user: Annotated[User, Security(get_current_user)], exercise_uuid: UUID, exercise_put_request: ExerciseCreateReq, session: Session = Depends(get_db)) -> ExerciseResponse:
     exercise = get_specific_exercise_from_current_user(current_user, exercise_uuid, session)
@@ -131,14 +135,7 @@ async def update_exercise(current_user: Annotated[User, Security(get_current_use
     movement_category_id = session.exec(select(MovementCategory.id).where(MovementCategory.name == exercise_put_request.movement_category)).first()
     major_muscle_id = session.exec(select(MajorMuscle.id).where(MajorMuscle.name == exercise_put_request.major_muscle)).first()
     equipment_id = session.exec(select(Equipment.id).where(Equipment.name == exercise_put_request.equipment)).first()
-    if not workout_category_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Workout category '{exercise_put_request.workout_category}' is not a valid option.")
-    if not movement_category_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Movement category '{exercise_put_request.movement_category}' is not a valid option.")
-    if not major_muscle_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Major muscle '{exercise_put_request.major_muscle}' is not a valid option.")
-    if not equipment_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Equipment '{exercise_put_request.equipment}' is not a valid option.")
+    verify_categories(workout_category_id, movement_category_id, major_muscle_id, equipment_id, exercise_put_request, session)
     exercise.workout_category_id = workout_category_id
     exercise.movement_category_id = movement_category_id
     exercise.major_muscle_id = major_muscle_id
@@ -158,7 +155,7 @@ async def update_exercise(current_user: Annotated[User, Security(get_current_use
     get_user_created_exercises_cached.cache_clear()
     return ExerciseResponse(data=data, detail=f"Exercise updated successfully.")
 
-@router.patch("/exercises/{exercise_uuid:uuid}", response_model=ExerciseResponse, status_code=status.HTTP_200_OK, tags=["Admin"])
+@router.patch("/exercises/{exercise_uuid:uuid}", response_model=ExerciseResponse, status_code=status.HTTP_200_OK, tags=["Admin", "User"])
 @check_roles(["User", "Admin"])
 async def update_exercise(current_user: Annotated[User, Security(get_current_user)], exercise_uuid: UUID, exercise_patch_request: ExercisePatchReq, session: Session = Depends(get_db)) -> ExerciseResponse:
     exercise = get_specific_exercise_from_current_user(current_user, exercise_uuid, session)
@@ -172,33 +169,37 @@ async def update_exercise(current_user: Annotated[User, Security(get_current_use
                 case "workout_category":
                     workout_category_id = session.exec(select(WorkoutCategory).where(WorkoutCategory.name == value)).first().id
                     if not workout_category_id:
-                        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Workout category '{value}' is not a valid option.")
+                        valid_options = session.exec(select(WorkoutCategory.name)).all()
+                        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Workout category '{exercise_patch_request.workout_category}' is not a valid option. These are valid options: {valid_options}")
                     exercise.workout_category_id = workout_category_id
                 case "movement_category":
                     movement_category_id = session.exec(select(MovementCategory).where(MovementCategory.name == value)).first().id
                     if not movement_category_id:
-                        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Movement category '{value}' is not a valid option.")
+                        valid_options = session.exec(select(MovementCategory.name)).all()
+                        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Movement category '{exercise_patch_request.movement_category}' is not a valid option. These are valid options: {valid_options}")
                     exercise.movement_category_id = movement_category_id
                 case "major_muscle":
                     major_muscle_id = session.exec(select(MajorMuscle).where(MajorMuscle.name == value)).first().id
                     if not major_muscle_id:
-                        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Major muscle '{value}' is not a valid option.")
+                        valid_options = session.exec(select(MajorMuscle.name)).all()
+                        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Major muscle '{exercise_patch_request.major_muscle}' is not a valid option. These are valid options: {valid_options}")
                     exercise.major_muscle_id = major_muscle_id
                 case "equipment":
                     equipment_id = session.exec(select(Equipment).where(Equipment.name == value)).first().id
                     if not equipment_id:
-                        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Equipment '{value}' is not a valid option.")
+                        valid_options = session.exec(select(Equipment.name)).all()
+                        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Equipment '{exercise_patch_request.equipment}' is not a valid option. These are valid options: {valid_options}")
                     exercise.equipment_id = equipment_id
                 case "specific_muscles":
-                    specific_muscle_ids =[]
+                    specific_muscle_objects = []
                     for specific_muscle in value:
-                        specific_muscle_id = session.exec(select(SpecificMuscle).where(SpecificMuscle.name == specific_muscle)).first().id
-                        if not specific_muscle_id:
-                            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Specific muscle '{value}' is not a valid option.")
-                        specific_muscle_ids.append(specific_muscle_id)
+                        specific_muscle_object = session.exec(select(SpecificMuscle).where(SpecificMuscle.name == value)).first()
+                        if not specific_muscle_object:
+                            valid_options = session.exec(select(SpecificMuscle.name)).all()
+                            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Specific Muscle '{specific_muscle}' is not a valid option. These are valid options: {valid_options}")
+                        specific_muscle_objects.append(specific_muscle_object)
                     exercise.specific_muscles.clear()
-                    for specific_muscle_id in specific_muscle_ids:
-                        session.add(ExerciseSpecificMuscleLink(specific_muscle_id=specific_muscle_id, exercise_id=exercise.id))
+                    list(map(exercise.specific_muscles.append, specific_muscle_objects))
     session.commit()
     session.refresh(exercise)
     data = ExerciseResponseData.from_orm(exercise)
@@ -206,7 +207,7 @@ async def update_exercise(current_user: Annotated[User, Security(get_current_use
     get_user_created_exercises_cached.cache_clear()
     return ExerciseResponse(data=data, detail=f"Exercise patched successfully.")
 
-@router.delete("/exercises/{exercise_uuid:uuid}", status_code=status.HTTP_204_NO_CONTENT, tags=["Admin"])
+@router.delete("/exercises/{exercise_uuid:uuid}", status_code=status.HTTP_204_NO_CONTENT, tags=["Admin", "User"])
 @check_roles(["User", "Admin"])
 async def delete_exercise(current_user: Annotated[User, Security(get_current_user)], exercise_uuid: UUID, session: Session = Depends(get_db)):
     exercise = get_specific_exercise_from_current_user(current_user, exercise_uuid, session)

@@ -18,7 +18,7 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
 
 # EXAMPLE
 
-@router.get("/users/me", response_model=User)
-@check_roles(["User", "Admin"])
-async def read_users_me(current_user: Annotated[User, Security(get_current_user, scopes=['User'])]):
-    return current_user
+# @router.get("/users/me", response_model=User)
+# @check_roles(["User", "Admin"])
+# async def read_users_me(current_user: Annotated[User, Security(get_current_user, scopes=['User'])]):
+#     return current_user

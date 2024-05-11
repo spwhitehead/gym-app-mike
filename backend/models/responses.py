@@ -52,7 +52,7 @@ class ExerciseLogListResponse(SQLModel):
 
 class WorkoutExerciseResponseData(WorkoutExerciseBase):
     uuid: UUID
-    exercise_order: int
+    exercise_order: int | None
     exercise: 'ExerciseResponseData'
 
 class WorkoutExerciseResponse(SQLModel):
