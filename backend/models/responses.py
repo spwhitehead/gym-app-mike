@@ -39,7 +39,6 @@ class ExerciseListResponse(SQLModel):
 
 class ExerciseLogResponseData(ExerciseLogBase):
     uuid: UUID
-    user_uuid: UUID
     exercise: 'ExerciseResponseData'
     
 class ExerciseLogResponse(SQLModel):

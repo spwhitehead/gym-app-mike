@@ -19,7 +19,7 @@ from utilities.authorization import check_roles
 
 router = APIRouter()
 
-@lru_cache(maxsize=1000)
+@lru_cache(maxsize=128)
 def get_all_exercises_cached(current_user: User) -> list[ExerciseResponseData]:
     with Session(engine) as session:
         exercises = session.exec(select(Exercise).where(or_(Exercise.user_id == current_user.id, Exercise.user_id == None))).all()
@@ -27,7 +27,7 @@ def get_all_exercises_cached(current_user: User) -> list[ExerciseResponseData]:
         data.sort(key=lambda exercise: exercise.name)
         return data
 
-@lru_cache(maxsize=1000)
+@lru_cache(maxsize=128)
 def get_user_created_exercises_cached(current_user: User) -> list[ExerciseResponseData]:
     with Session(engine) as session:
         exercises = session.exec(select(Exercise).where(Exercise.user_id == current_user.id)).all()

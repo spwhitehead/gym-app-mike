@@ -17,7 +17,7 @@ SECRET_KEY = str(config("SECRET_KEY"))
 ALGORITHM = str(config("ALGORITHM"))
 ACCESS_TOKEN_EXPIRE_MINUTES = int(config("ACCESS_TOKEN_EXPIRE_MINUTES"))
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", scopes={'User':"user", 'Admin':"admin"})
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login", scopes={})
 
 class Token(SQLModel):
     access_token: str
