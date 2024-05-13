@@ -13,6 +13,8 @@ from db import engine
 from models.relationship_merge import User
 from functools import wraps
 
+from db import get_db
+
 SECRET_KEY = str(config("SECRET_KEY"))
 ALGORITHM = str(config("ALGORITHM"))
 ACCESS_TOKEN_EXPIRE_MINUTES = int(config("ACCESS_TOKEN_EXPIRE_MINUTES"))
@@ -53,9 +55,9 @@ def create_access_token(data: dict, expires_delta: dt.timedelta | None = None) -
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-async def get_current_user(security_scopses: SecurityScopes, token: Annotated[str, Depends(oauth2_scheme)]):
-    if security_scopses.scopes:
-        authenticate_value = f"Bearer scope={security_scopses.scopes}"
+async def get_current_user(security_scopes: SecurityScopes, token: Annotated[str, Depends(oauth2_scheme)]):
+    if security_scopes.scopes:
+        authenticate_value = f"Bearer scope={security_scopes.scopes}"
     else:
         authenticate_value = "Bearer"
     credentials_exception = HTTPException( status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials", headers={"WWW-Authenticate": authenticate_value},
@@ -73,7 +75,7 @@ async def get_current_user(security_scopses: SecurityScopes, token: Annotated[st
         user = get_user(token_data.user_uuid, session) 
         if user is None:
             raise credentials_exception
-        for scope in security_scopses.scopes:
+        for scope in security_scopes.scopes:
             if scope not in token_data.scopes:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -86,17 +88,19 @@ def check_roles(allowed_roles: list[str]):
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            with Session(engine) as session:
-                current_user: User = kwargs.get("current_user")
-                current_user = session.exec(select(User).options(joinedload(User.roles)).where(User.uuid == current_user.uuid)).first()
-                if current_user is None:
-                        current_user = await get_current_user(*args, **kwargs)
-                if current_user is None:
-                    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication credentials were not provided")
-                user_roles = set(role.name for role in current_user.roles)
-                if not any(role in user_roles for role in allowed_roles):
-                    raise HTTPException(status_code=403, detail="Not enough permissions")
-                return await func(*args, **kwargs)
+            session: Session = kwargs.get('session')
+            if session is None:
+                raise ValueError("Session must be provided")
+            current_user: User = kwargs.get("current_user")
+            current_user: User = session.exec(select(User).options(joinedload(User.roles)).where(User.uuid == current_user.uuid)).first()
+            if current_user is None:
+                    current_user = await get_current_user(*args, **kwargs)
+            if current_user is None:
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication credentials were not provided")
+            user_roles = set(role.name for role in current_user.roles)
+            if not any(role in user_roles for role in allowed_roles):
+                raise HTTPException(status_code=403, detail="Not enough permissions")
+            return await func(*args, **kwargs)
         return wrapper
     return decorator
 

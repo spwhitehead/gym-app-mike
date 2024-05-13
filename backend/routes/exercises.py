@@ -20,28 +20,25 @@ from utilities.authorization import check_roles
 router = APIRouter()
 
 @lru_cache(maxsize=128)
-def get_all_exercises_cached(current_user: User) -> list[ExerciseResponseData]:
-    with Session(engine) as session:
-        exercises = session.exec(select(Exercise).where(or_(Exercise.user_id == current_user.id, Exercise.user_id == None))).all()
-        data = [ExerciseResponseData.from_orm(exercise) for exercise in exercises]
-        data.sort(key=lambda exercise: exercise.name)
-        return data
+def get_all_exercises_cached(current_user: User, session: Session) -> list[ExerciseResponseData]:
+    exercises = session.exec(select(Exercise).where(or_(Exercise.user_id == current_user.id, Exercise.user_id == None))).all()
+    data = [ExerciseResponseData.from_orm(exercise) for exercise in exercises]
+    data.sort(key=lambda exercise: exercise.name)
+    return data
 
 @lru_cache(maxsize=128)
-def get_user_created_exercises_cached(current_user: User) -> list[ExerciseResponseData]:
-    with Session(engine) as session:
-        exercises = session.exec(select(Exercise).where(Exercise.user_id == current_user.id)).all()
-        data = [ExerciseResponseData.from_orm(exercise) for exercise in exercises]
-        data.sort(key=lambda exercise: exercise.name)
-        return data
+def get_user_created_exercises_cached(current_user: User, session: Session) -> list[ExerciseResponseData]:
+    exercises = session.exec(select(Exercise).where(Exercise.user_id == current_user.id)).all()
+    data = [ExerciseResponseData.from_orm(exercise) for exercise in exercises]
+    data.sort(key=lambda exercise: exercise.name)
+    return data
 
 @lru_cache(maxsize=128)
-def get_admin_created_exercises_cached(current_user: User) -> list[ExerciseResponseData]:
-    with Session(engine) as session:
-        exercises = session.exec(select(Exercise).where(Exercise.user_id == None)).all()
-        data = [ExerciseResponseData.from_orm(exercise) for exercise in exercises]
-        data.sort(key=lambda exercise: exercise.name)
-        return data
+def get_admin_created_exercises_cached(current_user: User, session: Session) -> list[ExerciseResponseData]:
+    exercises = session.exec(select(Exercise).where(Exercise.user_id == None)).all()
+    data = [ExerciseResponseData.from_orm(exercise) for exercise in exercises]
+    data.sort(key=lambda exercise: exercise.name)
+    return data
         
 def get_specific_exercise_from_current_user(current_user: User, exercise_uuid: UUID, session: Session) -> Exercise:
     current_user = session.exec(select(User).where(User.id == current_user.id)).first()
@@ -81,23 +78,22 @@ def clear_exercises_cache():
     get_admin_created_exercises_cached.cache_clear() 
 
 # Exercises
-@router.get("/users/me/all-exercises", response_model=ExerciseListResponse, status_code=status.HTTP_200_OK, tags=["Admin", "User"])
+@router.get("/users/me/exercises", response_model=ExerciseListResponse, status_code=status.HTTP_200_OK, tags=["Admin", "User"])
 @check_roles(["User", "Admin"])
-async def get_all_exercises(current_user: Annotated[User, Security(get_current_user)]) -> ExerciseListResponse:
-    data = get_all_exercises_cached(current_user)
+async def get_all_exercises(current_user: Annotated[User, Security(get_current_user)], session: Session = Depends(get_db), user_created: bool = None, admin_created: bool = None) -> ExerciseListResponse:
+    current_user = session.exec(select(User).where(User.id == current_user.id)).first()
+    if user_created and admin_created:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot filter for both user and admin created exercises.")
+    if not user_created and not admin_created:
+        data = get_all_exercises_cached(current_user, session)
+    if user_created:
+        if "User" in [role.name for role in current_user.roles]:
+            data = get_user_created_exercises_cached(current_user, session)
+        elif "Admin" in [role.name for role in current_user.roles]:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Admins cannot view user created exercises.")
+    if admin_created:
+        data = get_admin_created_exercises_cached(current_user, session)
     return ExerciseListResponse(data=data, detail="Exercises fetched successfully.")
-
-@router.get("/users/me/exercises/user-created", response_model=ExerciseListResponse, status_code=status.HTTP_200_OK, tags=["User"])
-@check_roles(["User"])
-async def get_user_created_exercises(current_user: Annotated[User, Security(get_current_user)]) -> ExerciseListResponse:
-    data = get_user_created_exercises_cached(current_user)
-    return ExerciseListResponse(data=data, detail="User created exercises fetched successfully.")
-
-@router.get("/users/me/exercises/admin-created", response_model=ExerciseListResponse, status_code=status.HTTP_200_OK, tags=["Admin", "User"])
-@check_roles(["User", "Admin"])
-async def get_admin_created_exercises(current_user: Annotated[User, Security(get_current_user)], session: Session = Depends(get_db)) -> ExerciseListResponse:
-    data = get_admin_created_exercises_cached(current_user)
-    return ExerciseListResponse(data=data, detail="Admin created exercises fetched successfully.")
 
 @router.get("/users/me/exercises/{exercise_uuid:uuid}", response_model=ExerciseResponse, status_code=status.HTTP_200_OK, tags=["Admin", "User"])
 @check_roles(["User", "Admin"])

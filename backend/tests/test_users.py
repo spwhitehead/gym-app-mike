@@ -6,7 +6,7 @@ from httpx import Response
 from db import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 from sqlmodel import select, insert
-from models.relationship_merge import Exercise, User, WorkoutCategory, MovementCategory, MajorMuscle, SpecificMuscle, Equipment, BandColor
+from models.relationship_merge import Exercise, User, WorkoutCategory, MovementCategory, MajorMuscle, SpecificMuscle, Equipment, BandColor, Role
 
 from db import get_db
 from main import app
@@ -27,6 +27,10 @@ def build_database(engine):
                     session.exec(insert(SpecificMuscle).values(name=specific_muscle.title()))
             if not session.exec(select(Equipment).where(Equipment.name == exercise["equipment"].title())).first():
                 session.exec(insert(Equipment).values(name=exercise["equipment"].title()))
+        roles = {"User", "Admin"}
+        for role in roles:
+            if not session.exec(select(Role).where(Role.name == role)).first():
+                session.add(Role(name=role)) 
         band_colors = ["yellow", "red", "green", "black", "purple", "blue", "orange", "gray"]
         for color in band_colors:
             if not session.exec(select(BandColor).where(BandColor.name == color.title())).first():

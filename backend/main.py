@@ -22,10 +22,10 @@ app.include_router(workout_exercises.router, tags=["Workout Exercises"])
 #         raise HTTPException(status_code=400, detail="Use HTTPS instead of HTTP.")
 #     return await call_next(request)
 
-if __name__ == "__main__":
-    # Setup ngrok
-    ngrok_tunnel = ngrok.connect(8000)
-    print("Public URL:", ngrok_tunnel.public_url)
-    # Run Uvicorn
-    import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000, reload=True)
+# if __name__ == "__main__":
+#     # Setup ngrok
+#     ngrok_tunnel = ngrok.connect(8000)
+#     print("Public URL:", ngrok_tunnel.public_url)
+#     # Run Uvicorn
+#     import uvicorn
+#     uvicorn.run(app, host="127.0.0.1", port=8000, reload=True)

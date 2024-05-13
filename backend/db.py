@@ -79,7 +79,7 @@ postgres_url = config("POSTGRES_URL")
 engine = create_engine(postgres_url, echo=False)
 
 setup_database(engine)
-populate_exercise_data(engine)
+#populate_exercise_data(engine)
 
 
 
