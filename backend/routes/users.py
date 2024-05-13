@@ -34,7 +34,7 @@ def setup_logging():
 setup_logging()
 
 # Get Requests 
-@router.get("/users/all", response_model=UserListResponse, status_code=status.HTTP_200_OK)
+@router.get("/users/all", response_model=UserListResponse, status_code=status.HTTP_200_OK, tags=["Admin"])
 @check_roles(["Admin"])
 async def get_users_and_admins(current_user: Annotated[User, Security(get_current_user)], session: Session = Depends(get_db)) -> UserListResponse:
     current_user = session.exec(select(User).where(User.id == current_user.id)).first()
@@ -42,7 +42,7 @@ async def get_users_and_admins(current_user: Annotated[User, Security(get_curren
     data = [UserResponseData.model_validate(user, update={"roles":[role.name for role in user.roles]}) for user in users]
     return UserListResponse(data=data, detail=f"{len(data)} users fetched successfully." if len(data) != 1 else f"{len(data)} user fetched successfully.")
 
-@router.get("/users/me", response_model=UserResponse, status_code=status.HTTP_200_OK)
+@router.get("/users/me", response_model=UserResponse, status_code=status.HTTP_200_OK, tags=["User", "Admin"])
 @check_roles(["User", "Admin"])
 async def get_logged_in_user(current_user: Annotated[User, Security(get_current_user)], session: Session = Depends(get_db)) -> UserResponse:
     logging.debug("Entered get_current_user")
@@ -50,21 +50,21 @@ async def get_logged_in_user(current_user: Annotated[User, Security(get_current_
     data = UserResponseData.model_validate(current_user, update={"roles":[role.name for role in current_user.roles]})
     return UserResponse(data=data, detail="User fetched successfully.")
 
-@router.get("/users/admins", response_model=UserListResponse, status_code=status.HTTP_200_OK)
+@router.get("/users/admins", response_model=UserListResponse, status_code=status.HTTP_200_OK, tags=["Admin"])
 @check_roles(["Admin"])
 async def get_admins(current_user: Annotated[User, Security(get_current_user)], session: Session = Depends(get_db)) -> UserListResponse:
     admins = session.exec(select(User).join(User.roles).where(Role.name == "Admin")).all()
     data = [UserResponseData.model_validate(admin, update={"roles": [role.name for role in admin.roles]}) for admin in admins]
     return UserListResponse(data=data, detail=f"{len(data)} admins fetched successfully." if len(data) != 1 else f"{len(data)} admin fetched successfully.")
 
-@router.get("/users/users", response_model=UserListResponse, status_code=status.HTTP_200_OK)
+@router.get("/users/users", response_model=UserListResponse, status_code=status.HTTP_200_OK, tags=["Admin"])
 @check_roles(["Admin"])
 async def get_users(current_user: Annotated[User, Security(get_current_user)], session: Session = Depends(get_db)) -> UserListResponse:
     users = session.exec(select(User).join(User.roles).where(Role.name == "User")).all()
     data = [UserResponseData.model_validate(user, update={"roles": [role.name for role in user.roles]}) for user in users]
     return UserListResponse(data=data, detail=f"{len(data)} users fetched successfully." if len(data) != 1 else f"{len(data)} user fetched successfully.")
 
-@router.get("/users/{user_uuid:uuid}", response_model=UserResponse, status_code=status.HTTP_200_OK)
+@router.get("/users/{user_uuid:uuid}", response_model=UserResponse, status_code=status.HTTP_200_OK, tags=["Admin"])
 @check_roles(["Admin"])
 async def get_specific_user(current_user: Annotated[User, Security(get_current_user)], user_uuid: UUID, session: Session = Depends(get_db)) -> UserResponse:
     current_user = session.exec(select(User).where(User.id == current_user.id)).first()
@@ -76,7 +76,7 @@ async def get_specific_user(current_user: Annotated[User, Security(get_current_u
 
 # Post Requests
 
-@router.post("/users/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED, tags=["Register"])
+@router.post("/users/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED, tags=["Authorization"])
 async def add_user(create_user_request: UserCreateReq, session: Session = Depends(get_db)) -> UserResponse:
     username = create_user_request.username
     if session.exec(select(User).where(User.username == username)).first():
@@ -97,8 +97,6 @@ async def add_user(create_user_request: UserCreateReq, session: Session = Depend
 @check_roles(["User", "Admin"])
 async def update_logged_in_user(current_user: Annotated[User, Security(get_current_user)], update_user_request: UserPutReq, session: Session = Depends(get_db)) -> UserResponse:
     current_user = session.exec(select(User).where(User.id == current_user.id)).first()
-    if not current_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
     for attr, value in update_user_request.model_dump().items():
         setattr(current_user, attr, value) 
     session.commit()
@@ -125,8 +123,6 @@ async def update_user(current_user: Annotated[User, Security(get_current_user)],
 @check_roles(["User", "Admin"])
 async def patch_logged_in_user(current_user: Annotated[User, Security(get_current_user)], update_user_request: UserPatchReq, session: Session = Depends(get_db)) -> UserResponse:
     current_user = session.exec(select(User).where(User.id == current_user.id)).first()
-    if not current_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
     for attr, value in update_user_request.model_dump(exclude_unset=True).items():
         setattr(current_user, attr, value) 
     session.commit()
@@ -147,13 +143,11 @@ async def patch_user(current_user: Annotated[User, Security(get_current_user)], 
     data = UserResponseData.model_validate(user, update={"roles": [role.name for role in user.roles]})
     return UserResponse(data=data, detail="User updated.")
 
-@router.patch("/users/me/username", response_model=UserResponse, status_code=status.HTTP_200_OK, tags=["User", "Admin"])
+@router.patch("/users/me/change_username", response_model=UserResponse, status_code=status.HTTP_200_OK, tags=["User", "Admin"])
 @check_roles(["User", "Admin"])
 async def patch_logged_in_user_username(current_user: Annotated[User, Security(get_current_user)], update_user_request: UserUsernamePatchReq, session: Session = Depends(get_db)) -> UserResponse:
     current_user = session.exec(select(User).where(User.id == current_user.id)).first()
-    if not current_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
-    if session.exec(select(User).where(User.username == update_user_request.username)).first():
+    if session.exec(select(User).where(User.id != current_user.id).where(User.username == update_user_request.username)).first():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Username: {update_user_request.username} already exists.")
     current_user.username = update_user_request.username
     session.commit()
@@ -161,9 +155,11 @@ async def patch_logged_in_user_username(current_user: Annotated[User, Security(g
     data = UserResponseData.model_validate(current_user, update={"roles": [role.name for role in current_user.roles]})
     return UserResponse(data=data, detail="User updated.")
 
-@router.patch("/users/{user_uuid:uuid}/username", response_model=UserResponse, status_code=status.HTTP_200_OK, tags=["Admin"])
+@router.patch("/users/{user_uuid:uuid}/change_username", response_model=UserResponse, status_code=status.HTTP_200_OK, tags=["Admin"])
 @check_roles(["Admin"])
 async def patch_user_username(current_user: Annotated[User, Security(get_current_user)], user_uuid: UUID, update_user_request: UserUsernamePatchReq, session: Session = Depends(get_db)) -> UserResponse:
+    if current_user.uuid == user_uuid:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You cannot change your own username.")
     user = session.exec(select(User).where(User.uuid == user_uuid)).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User UUID: {user_uuid} not found.")
@@ -175,21 +171,21 @@ async def patch_user_username(current_user: Annotated[User, Security(get_current
     data = UserResponseData.model_validate(user, update={"roles": [role.name for role in user.roles]})
     return UserResponse(data=data, detail="User updated.")
 
-@router.patch("/users/me/password", response_model=UserResponse, status_code=status.HTTP_200_OK, tags=["User", "Admin"])
+@router.patch("/users/me/change_password", response_model=UserResponse, status_code=status.HTTP_200_OK, tags=["User", "Admin"])
 @check_roles(["User", "Admin"])
 async def patch_logged_in_user_password(current_user: Annotated[User, Security(get_current_user)], update_user_request: UserPasswordPatchReq, session: Session = Depends(get_db)) -> UserResponse:
     current_user = session.exec(select(User).where(User.id == current_user.id)).first()
-    if not current_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
     current_user.hashed_password = update_user_request.password
     session.commit()
     session.refresh(current_user)
     data = UserResponseData.model_validate(current_user, update={"roles": [role.name for role in current_user.roles]})
     return UserResponse(data=data, detail="User updated.")
 
-@router.patch("/users/{user_uuid:uuid}/password", response_model=UserResponse, status_code=status.HTTP_200_OK, tags=["Admin"])
+@router.patch("/users/{user_uuid:uuid}/change_password", response_model=UserResponse, status_code=status.HTTP_200_OK, tags=["Admin"])
 @check_roles(["Admin"])
 async def patch_user_password(current_user: Annotated[User, Security(get_current_user)], user_uuid: UUID, update_user_request: UserPasswordPatchReq, session: Session = Depends(get_db)) -> UserResponse:
+    if current_user.uuid == user_uuid:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You cannot change your own password.")
     user = session.exec(select(User).where(User.uuid == user_uuid)).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User UUID: {user_uuid} not found.")
@@ -199,7 +195,7 @@ async def patch_user_password(current_user: Annotated[User, Security(get_current
     data = UserResponseData.model_validate(user, update={"roles": [role.name for role in user.roles]})
     return UserResponse(data=data, detail="User updated.")
 
-@router.patch("/users/{user_uuid:uuid}/roles", response_model=UserResponse, status_code=status.HTTP_200_OK, tags=["Admin"])
+@router.patch("/users/{user_uuid:uuid}/change_roles", response_model=UserResponse, status_code=status.HTTP_200_OK, tags=["Admin"])
 @check_roles(["Admin"])
 async def patch_user_role(current_user: Annotated[User, Security(get_current_user)], user_uuid: UUID, update_user_request: UserRolePatchReq, session: Session = Depends(get_db)) -> UserResponse:
     if current_user.uuid == user_uuid:

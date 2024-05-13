@@ -10,7 +10,7 @@ class WorkoutExerciseWorkoutOrderLink(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True, index=True)
     workout_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("workout.id", ondelete="CASCADE"), index=True))
     workout_exercise_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("workoutexercise.id", ondelete="CASCADE"), primary_key=True, index=True))
-    exercise_order: int
+    exercise_order: int | None = Field(default=None, sa_column=Column(Integer, index=True))
     
 class UserRoleLink(SQLModel, table=True):
     user_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), primary_key=True, index=True))

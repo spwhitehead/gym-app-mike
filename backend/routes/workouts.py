@@ -32,12 +32,12 @@ def get_all_exercises_cached(current_user: User) -> list[WorkoutResponseData]:
         return WorkoutListResponse(data=data, detail=f"{len(workouts)} workouts fetched successfully." if len(workouts) != 1 else f"{len(workouts)} workout fetched successfully.")
 
 # Workout End Points
-@router.get("/workouts", response_model=WorkoutListResponse, status_code=status.HTTP_200_OK, tags=["User"])
+@router.get("/users/me/workouts", response_model=WorkoutListResponse, status_code=status.HTTP_200_OK, tags=["User"])
 @check_roles(["User"])
 async def get_workouts(current_user: Annotated[User, Security(get_current_user)], session: Session = Depends(get_db)) -> WorkoutListResponse:
     return get_all_exercises_cached(current_user)
     
-@router.get("/workouts/{workout_uuid:uuid}", response_model=WorkoutResponse, status_code=status.HTTP_200_OK, tags=["User"])
+@router.get("/users/me/workouts/{workout_uuid:uuid}", response_model=WorkoutResponse, status_code=status.HTTP_200_OK, tags=["User"])
 @check_roles(["User"])
 async def get_workout(current_user: Annotated[User, Security(get_current_user)], workout_uuid: UUID, session: Session = Depends(get_db)) -> WorkoutResponse:
     workout = session.exec(select(Workout).where(Workout.uuid == workout_uuid).where(Workout.user_id == current_user.id)).first()
@@ -46,7 +46,7 @@ async def get_workout(current_user: Annotated[User, Security(get_current_user)],
     data = WorkoutResponseData.model_validate(workout)
     return WorkoutResponse(data=data, detail="Workout fetched successfully.")
 
-@router.post("/workouts", response_model=WorkoutResponse, status_code=status.HTTP_201_CREATED, tags=["User"])
+@router.post("/users/me/workouts", response_model=WorkoutResponse, status_code=status.HTTP_201_CREATED, tags=["User"])
 @check_roles(["User"])
 async def create_workout(current_user: Annotated[User, Security(get_current_user)], workout_request: WorkoutCreateReq, session: Session = Depends(get_db)) -> WorkoutResponse:
     workout = Workout.model_validate(workout_request.model_dump(), update={"user_id": current_user.id})
@@ -57,7 +57,7 @@ async def create_workout(current_user: Annotated[User, Security(get_current_user
     get_all_exercises_cached.cache_clear()
     return WorkoutResponse(data=data, detail="Workout added successfully.")
 
-@router.put("/workouts/{workout_uuid:uuid}", response_model=WorkoutResponse, status_code=status.HTTP_200_OK, tags=["User"])
+@router.put("/users/me/workouts/{workout_uuid:uuid}", response_model=WorkoutResponse, status_code=status.HTTP_200_OK, tags=["User"])
 @check_roles(["User"])
 async def update_workout(current_user: Annotated[User, Security(get_current_user)], workout_uuid: UUID, workout_request: WorkoutCreateReq, session: Session = Depends(get_db)) -> WorkoutResponse:
     workout = session.exec(select(Workout).where(Workout.uuid == workout_uuid).where(Workout.user_id == current_user.id)).first()
@@ -71,7 +71,7 @@ async def update_workout(current_user: Annotated[User, Security(get_current_user
     get_all_exercises_cached.cache_clear()
     return WorkoutResponse(data=data, detail="Workout updated successfully.")
 
-@router.patch("/workouts/{workout_uuid:uuid}", response_model=WorkoutResponse, status_code=status.HTTP_200_OK, tags=["User"])
+@router.patch("/users/me/workouts/{workout_uuid:uuid}", response_model=WorkoutResponse, status_code=status.HTTP_200_OK, tags=["User"])
 @check_roles(["User"])
 async def patch_workout(current_user: Annotated[User, Security(get_current_user)], workout_uuid: UUID, workout_request: WorkoutPatchReq, session: Session = Depends(get_db)) -> WorkoutResponse:
     workout = session.exec(select(Workout).where(Workout.uuid == workout_uuid).where(Workout.user_id == current_user.id)).first()
@@ -85,7 +85,7 @@ async def patch_workout(current_user: Annotated[User, Security(get_current_user)
     get_all_exercises_cached.cache_clear()
     return WorkoutResponse(data=data, detail="Workout updated successfully.")
 
-@router.delete("/workouts/{workout_uuid:uuid}", status_code=status.HTTP_204_NO_CONTENT, tags=["User"])
+@router.delete("/users/me/workouts/{workout_uuid:uuid}", status_code=status.HTTP_204_NO_CONTENT, tags=["User"])
 async def delete_workout(current_user: Annotated[User, Security(get_current_user)], workout_uuid: UUID, session: Session = Depends(get_db)):
     workout = session.exec(select(Workout).where(Workout.uuid == workout_uuid).where(Workout.user_id == current_user.id)).first()
     if not workout:
@@ -96,7 +96,7 @@ async def delete_workout(current_user: Annotated[User, Security(get_current_user
 
 
 # Workout Exercise End Points
-@router.post("/workouts/{workout_uuid:uuid}/workout_exercises", response_model=WorkoutResponse, status_code=status.HTTP_200_OK, tags=["User"])
+@router.post("/users/me/workouts/{workout_uuid:uuid}/workout_exercises", response_model=WorkoutResponse, status_code=status.HTTP_200_OK, tags=["User"])
 @check_roles(["User"])
 async def link_workout_exercise_to_workout(current_user: Annotated[User, Security(get_current_user)], workout_uuid: UUID, workout_add_workout_exercise_request: WorkoutAddWorkoutExerciseReq, session: Session = Depends(get_db)) -> WorkoutResponse:
     workout = session.exec(select(Workout).where(Workout.uuid == workout_uuid).where(Workout.user_id == current_user.id)).first()
@@ -114,7 +114,7 @@ async def link_workout_exercise_to_workout(current_user: Annotated[User, Securit
     get_all_exercises_cached.cache_clear()
     return WorkoutResponse(data=data, detail="Added workout exercise succesfully.")
 
-@router.patch("/workouts/{workout_uuid:uuid}/exercises/{workout_exercise_uuid:uuid}", response_model=WorkoutResponse, status_code=status.HTTP_200_OK, tags=["User"])
+@router.patch("/users/me/workouts/{workout_uuid:uuid}/workout_exercises/{workout_exercise_uuid:uuid}", response_model=WorkoutResponse, status_code=status.HTTP_200_OK, tags=["User"])
 @check_roles(["User"])
 async def reorder_workout_exercise_in_workout(current_user: Annotated[User, Security(get_current_user)], workout_uuid: UUID, workout_exercise_uuid: UUID, new_order: int, session: Session = Depends(get_db)) -> WorkoutResponse:
     workout = session.exec(select(Workout).where(Workout.uuid == workout_uuid).where(Workout.user_id == current_user.id)).first()
@@ -136,7 +136,7 @@ async def reorder_workout_exercise_in_workout(current_user: Annotated[User, Secu
     get_all_exercises_cached.cache_clear()
     return WorkoutResponse(data=data, detail="Workout exercise reordered successfully.")
 
-@router.delete("/workouts/{workout_uuid:uuid}/exercises/{workout_exercise_uuid:uuid}", status_code=status.HTTP_204_NO_CONTENT, tags=["User"])
+@router.delete("/users/me/workouts/{workout_uuid:uuid}/workout_exercises/{workout_exercise_uuid:uuid}", status_code=status.HTTP_204_NO_CONTENT, tags=["User"])
 @check_roles(["User"])
 async def unlink_workout_exercise_from_workout(current_user: Annotated[User, Security(get_current_user)], workout_uuid: UUID, workout_exercise_uuid: UUID, session: Session = Depends(get_db)):
     workout = session.exec(select(Workout).where(Workout.uuid == workout_uuid).where(Workout.user_id == current_user.id)).first()

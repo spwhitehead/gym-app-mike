@@ -34,6 +34,14 @@ def get_user_created_exercises_cached(current_user: User) -> list[ExerciseRespon
         data = [ExerciseResponseData.from_orm(exercise) for exercise in exercises]
         data.sort(key=lambda exercise: exercise.name)
         return data
+
+@lru_cache(maxsize=128)
+def get_admin_created_exercises_cached(current_user: User) -> list[ExerciseResponseData]:
+    with Session(engine) as session:
+        exercises = session.exec(select(Exercise).where(Exercise.user_id == None)).all()
+        data = [ExerciseResponseData.from_orm(exercise) for exercise in exercises]
+        data.sort(key=lambda exercise: exercise.name)
+        return data
         
 def get_specific_exercise_from_current_user(current_user: User, exercise_uuid: UUID, session: Session) -> Exercise:
     current_user = session.exec(select(User).where(User.id == current_user.id)).first()
@@ -66,22 +74,32 @@ def verify_categories(workout_category_id: int, movement_category_id: int, major
         if not specific_muscle_id:
             valid_options = session.exec(select(SpecificMuscle.name)).all()
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Specific Muscle '{specific_muscle}' is not a valid option. These are valid options: {valid_options}")
-   
+
+def clear_exercises_cache():
+    get_all_exercises_cached.cache_clear()
+    get_user_created_exercises_cached.cache_clear()
+    get_admin_created_exercises_cached.cache_clear() 
+
 # Exercises
-@router.get("/exercises", response_model=ExerciseListResponse, status_code=status.HTTP_200_OK, tags=["Admin", "User"])
+@router.get("/users/me/all-exercises", response_model=ExerciseListResponse, status_code=status.HTTP_200_OK, tags=["Admin", "User"])
 @check_roles(["User", "Admin"])
 async def get_all_exercises(current_user: Annotated[User, Security(get_current_user)]) -> ExerciseListResponse:
     data = get_all_exercises_cached(current_user)
     return ExerciseListResponse(data=data, detail="Exercises fetched successfully.")
 
-@router.get("/exercises/user-created", response_model=ExerciseListResponse, status_code=status.HTTP_200_OK, tags=["User"])
+@router.get("/users/me/exercises/user-created", response_model=ExerciseListResponse, status_code=status.HTTP_200_OK, tags=["User"])
 @check_roles(["User"])
 async def get_user_created_exercises(current_user: Annotated[User, Security(get_current_user)]) -> ExerciseListResponse:
-        data = get_user_created_exercises_cached(current_user)
-        return ExerciseListResponse(data=data, detail="User created exercises fetched successfully.")
+    data = get_user_created_exercises_cached(current_user)
+    return ExerciseListResponse(data=data, detail="User created exercises fetched successfully.")
 
+@router.get("/users/me/exercises/admin-created", response_model=ExerciseListResponse, status_code=status.HTTP_200_OK, tags=["Admin", "User"])
+@check_roles(["User", "Admin"])
+async def get_admin_created_exercises(current_user: Annotated[User, Security(get_current_user)], session: Session = Depends(get_db)) -> ExerciseListResponse:
+    data = get_admin_created_exercises_cached(current_user)
+    return ExerciseListResponse(data=data, detail="Admin created exercises fetched successfully.")
 
-@router.get("/exercises/{exercise_uuid:uuid}", response_model=ExerciseResponse, status_code=status.HTTP_200_OK, tags=["Admin", "User"])
+@router.get("/users/me/exercises/{exercise_uuid:uuid}", response_model=ExerciseResponse, status_code=status.HTTP_200_OK, tags=["Admin", "User"])
 @check_roles(["User", "Admin"])
 async def get_exercise(current_user: Annotated[User, Security(get_current_user)], exercise_uuid: UUID, session: Session = Depends(get_db)) -> ExerciseResponse:
     current_user = session.exec(select(User).where(User.id == current_user.id)).first()
@@ -92,7 +110,7 @@ async def get_exercise(current_user: Annotated[User, Security(get_current_user)]
     return ExerciseResponse(data=data, detail="Exercise fetched successfully.")
 
 
-@router.post("/exercises/create", response_model=ExerciseResponse, status_code=status.HTTP_201_CREATED, tags=["Admin", "User"])
+@router.post("/users/me/exercises", response_model=ExerciseResponse, status_code=status.HTTP_201_CREATED, tags=["Admin", "User"])
 @check_roles(["User", "Admin"])
 async def add_exercise(current_user: Annotated[User, Security(get_current_user)], exercise_post_request: ExerciseCreateReq, session: Session = Depends(get_db)) -> ExerciseResponse:
     current_user = session.exec(select(User).where(User.id == current_user.id)).first()
@@ -120,12 +138,11 @@ async def add_exercise(current_user: Annotated[User, Security(get_current_user)]
     session.commit()
     session.refresh(exercise)
     data = ExerciseResponseData.from_orm(exercise)
-    get_all_exercises_cached.cache_clear()
-    get_user_created_exercises_cached.cache_clear()
+    clear_exercises_cache()
     return ExerciseResponse(data=data, detail=f"Exercise added successfully.")
             
 
-@router.put("/exercises/{exercise_uuid:uuid}", response_model=ExerciseResponse, status_code=status.HTTP_200_OK, tags=["Admin", "User"]) 
+@router.put("/users/me/exercises/{exercise_uuid:uuid}", response_model=ExerciseResponse, status_code=status.HTTP_200_OK, tags=["Admin", "User"]) 
 @check_roles(["User", "Admin"])
 async def update_exercise(current_user: Annotated[User, Security(get_current_user)], exercise_uuid: UUID, exercise_put_request: ExerciseCreateReq, session: Session = Depends(get_db)) -> ExerciseResponse:
     exercise = get_specific_exercise_from_current_user(current_user, exercise_uuid, session)
@@ -151,11 +168,10 @@ async def update_exercise(current_user: Annotated[User, Security(get_current_use
     session.commit()
     session.refresh(exercise)
     data =  ExerciseResponseData.from_orm(exercise)
-    get_all_exercises_cached.cache_clear()
-    get_user_created_exercises_cached.cache_clear()
+    clear_exercises_cache()
     return ExerciseResponse(data=data, detail=f"Exercise updated successfully.")
 
-@router.patch("/exercises/{exercise_uuid:uuid}", response_model=ExerciseResponse, status_code=status.HTTP_200_OK, tags=["Admin", "User"])
+@router.patch("/users/me/exercises/{exercise_uuid:uuid}", response_model=ExerciseResponse, status_code=status.HTTP_200_OK, tags=["Admin", "User"])
 @check_roles(["User", "Admin"])
 async def update_exercise(current_user: Annotated[User, Security(get_current_user)], exercise_uuid: UUID, exercise_patch_request: ExercisePatchReq, session: Session = Depends(get_db)) -> ExerciseResponse:
     exercise = get_specific_exercise_from_current_user(current_user, exercise_uuid, session)
@@ -203,16 +219,14 @@ async def update_exercise(current_user: Annotated[User, Security(get_current_use
     session.commit()
     session.refresh(exercise)
     data = ExerciseResponseData.from_orm(exercise)
-    get_all_exercises_cached.cache_clear()
-    get_user_created_exercises_cached.cache_clear()
+    clear_exercises_cache()
     return ExerciseResponse(data=data, detail=f"Exercise patched successfully.")
 
-@router.delete("/exercises/{exercise_uuid:uuid}", status_code=status.HTTP_204_NO_CONTENT, tags=["Admin", "User"])
+@router.delete("/users/me/exercises/{exercise_uuid:uuid}", status_code=status.HTTP_204_NO_CONTENT, tags=["Admin", "User"])
 @check_roles(["User", "Admin"])
 async def delete_exercise(current_user: Annotated[User, Security(get_current_user)], exercise_uuid: UUID, session: Session = Depends(get_db)):
     exercise = get_specific_exercise_from_current_user(current_user, exercise_uuid, session)
     session.delete(exercise)
     session.commit()
-    get_all_exercises_cached.cache_clear()
-    get_user_created_exercises_cached.cache_clear()
+    clear_exercises_cache()
 

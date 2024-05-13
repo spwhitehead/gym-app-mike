@@ -26,14 +26,14 @@ def get_all_exercise_logs_cached(current_user: User) -> list[ExerciseLogResponse
             data.append(ExerciseLogResponseData.model_validate(exercise_log, update={"exercise": exercise_data, "user_uuid": current_user.uuid}))
         return data
 
-@router.get("/exercise_logs", response_model=ExerciseLogListResponse, status_code=status.HTTP_200_OK, tags=["User"])
+@router.get("/users/me/exercise_logs", response_model=ExerciseLogListResponse, status_code=status.HTTP_200_OK, tags=["User"])
 @check_roles(["User"])
 async def get_all_exercise_logs(current_user: Annotated[User, Security(get_current_user)], session: Session = Depends(get_db)) -> ExerciseLogListResponse:
     current_user = session.exec(select(User).where(User.id == current_user.id)).first()
     data = get_all_exercise_logs_cached(current_user)
     return ExerciseLogListResponse(data=data, detail="Exercise Logs fetched successfully.")
 
-@router.get("/exercise_logs/{exercise_log_uuid:uuid}", response_model=ExerciseLogResponse, status_code=status.HTTP_200_OK, tags=["User"])
+@router.get("/users/me/exercise_logs/{exercise_log_uuid:uuid}", response_model=ExerciseLogResponse, status_code=status.HTTP_200_OK, tags=["User"])
 @check_roles(["User"])
 async def get_specific_exercise_log(current_user: Annotated[User, Security(get_current_user)], exercise_log_uuid: UUID, session: Session = Depends(get_db)) -> ExerciseLogResponse:
     current_user = session.exec(select(User).where(User.id == current_user.id)).first()
@@ -44,7 +44,7 @@ async def get_specific_exercise_log(current_user: Annotated[User, Security(get_c
     data = ExerciseLogResponseData.model_validate(exercise_log, update={"exercise": exercise_data, "user_uuid": current_user.uuid})
     return ExerciseLogResponse(data=data, detail="Exercise log fetched successfully.")
 
-@router.post("/exercise_logs", response_model=ExerciseLogResponse, status_code=status.HTTP_201_CREATED, tags=["User"])
+@router.post("/users/me/exercise_logs", response_model=ExerciseLogResponse, status_code=status.HTTP_201_CREATED, tags=["User"])
 @check_roles(["User"])
 async def create_exercise_log(current_user: Annotated[User, Security(get_current_user)], create_exercise_log_request: ExerciseLogCreateReq, session: Session = Depends(get_db)) -> ExerciseLogResponse:
     current_user = session.exec(select(User).where(User.id == current_user.id)).first()
@@ -62,7 +62,7 @@ async def create_exercise_log(current_user: Annotated[User, Security(get_current
     get_all_exercise_logs_cached.cache_clear()
     return ExerciseLogResponse(data=data, detail="Exercise log created successfully.")
 
-@router.put("/exercise_logs/{exercise_log_uuid:uuid}", response_model=ExerciseLogResponse, status_code=status.HTTP_200_OK, tags=["User"])
+@router.put("/users/me/exercise_logs/{exercise_log_uuid:uuid}", response_model=ExerciseLogResponse, status_code=status.HTTP_200_OK, tags=["User"])
 @check_roles(["User"])
 async def update_exercise_log(current_user: Annotated[User, Security(get_current_user)], exercise_log_uuid: UUID, create_exercise_log_request: ExerciseLogCreateReq, session: Session = Depends(get_db)) -> ExerciseLogResponse:
     current_user = session.exec(select(User).where(User.id == current_user.id)).first()
@@ -82,7 +82,7 @@ async def update_exercise_log(current_user: Annotated[User, Security(get_current
     get_all_exercise_logs_cached.cache_clear()
     return ExerciseLogResponse(data=data, detail="Exercise log updated successfully.")
 
-@router.patch("/exercise_logs/{exercise_log_uuid:uuid}", response_model=ExerciseLogResponse, status_code=status.HTTP_200_OK, tags=["User"])
+@router.patch("/users/me/exercise_logs/{exercise_log_uuid:uuid}", response_model=ExerciseLogResponse, status_code=status.HTTP_200_OK, tags=["User"])
 @check_roles(["User"])
 async def patch_exercise_log(current_user: Annotated[User, Security(get_current_user)], exercise_log_uuid: UUID, patch_exercise_log_request: ExerciseLogPatchReq, session: Session = Depends(get_db)) -> ExerciseLogResponse:
     current_user = session.exec(select(User).where(User.id == current_user.id)).first()
@@ -103,7 +103,7 @@ async def patch_exercise_log(current_user: Annotated[User, Security(get_current_
     get_all_exercise_logs_cached.cache_clear()
     return ExerciseLogResponse(data=data, detail="Exercise log updated successfully.")
 
-@router.delete("/exercise_logs/{exercise_log_uuid:uuid}", status_code=status.HTTP_204_NO_CONTENT, tags=["User"])
+@router.delete("/users/me/exercise_logs/{exercise_log_uuid:uuid}", status_code=status.HTTP_204_NO_CONTENT, tags=["User"])
 @check_roles(["User"])
 async def delete_exercise_log(current_user: Annotated[User, Security(get_current_user)], exercise_log_uuid: UUID, session: Session = Depends(get_db)):
     current_user = session.exec(select(User).where(User.id == current_user.id)).first()
