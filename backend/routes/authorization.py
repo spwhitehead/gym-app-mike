@@ -15,10 +15,3 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
     access_token_expires = dt.timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(data={"sub": str(user.uuid), "iat": dt.datetime.now(dt.UTC), "scopes": form_data.scopes}, expires_delta=access_token_expires)
     return {"access_token": access_token, "token_type": "bearer"}
-
-# EXAMPLE
-
-# @router.get("/users/me", response_model=User)
-# @check_roles(["User", "Admin"])
-# async def read_users_me(current_user: Annotated[User, Security(get_current_user, scopes=['User'])]):
-#     return current_user
