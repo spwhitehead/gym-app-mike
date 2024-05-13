@@ -23,19 +23,18 @@ from utilities.authorization import get_current_user, check_roles
 router = APIRouter()
 
 @lru_cache(maxsize=1000)
-def get_all_exercises_cached(current_user: User) -> list[WorkoutResponseData]:
-    with Session(engine) as session:
-        current_user = session.exec(select(User).where(User.id == current_user.id)).first()
-        workouts = session.exec(select(Workout).where(Workout.user_id == current_user.id)).all()
-        data = [WorkoutResponseData.model_validate(workout) for workout in workouts]
-        data.sort(key=lambda workout: workout.name)
-        return WorkoutListResponse(data=data, detail=f"{len(workouts)} workouts fetched successfully." if len(workouts) != 1 else f"{len(workouts)} workout fetched successfully.")
+def get_all_exercises_cached(current_user: User, session: Session) -> list[WorkoutResponseData]:
+    current_user = session.exec(select(User).where(User.id == current_user.id)).first()
+    workouts = session.exec(select(Workout).where(Workout.user_id == current_user.id)).all()
+    data = [WorkoutResponseData.model_validate(workout) for workout in workouts]
+    data.sort(key=lambda workout: workout.name)
+    return WorkoutListResponse(data=data, detail=f"{len(workouts)} workouts fetched successfully." if len(workouts) != 1 else f"{len(workouts)} workout fetched successfully.")
 
 # Workout End Points
 @router.get("/users/me/workouts", response_model=WorkoutListResponse, status_code=status.HTTP_200_OK, tags=["User"])
 @check_roles(["User"])
 async def get_workouts(current_user: Annotated[User, Security(get_current_user)], session: Session = Depends(get_db)) -> WorkoutListResponse:
-    return get_all_exercises_cached(current_user)
+    return get_all_exercises_cached(current_user, session)
     
 @router.get("/users/me/workouts/{workout_uuid:uuid}", response_model=WorkoutResponse, status_code=status.HTTP_200_OK, tags=["User"])
 @check_roles(["User"])
@@ -86,6 +85,7 @@ async def patch_workout(current_user: Annotated[User, Security(get_current_user)
     return WorkoutResponse(data=data, detail="Workout updated successfully.")
 
 @router.delete("/users/me/workouts/{workout_uuid:uuid}", status_code=status.HTTP_204_NO_CONTENT, tags=["User"])
+@check_roles(["User"])
 async def delete_workout(current_user: Annotated[User, Security(get_current_user)], workout_uuid: UUID, session: Session = Depends(get_db)):
     workout = session.exec(select(Workout).where(Workout.uuid == workout_uuid).where(Workout.user_id == current_user.id)).first()
     if not workout:

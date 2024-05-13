@@ -15,16 +15,15 @@ from utilities.authorization import get_current_user, check_roles
 router = APIRouter()
 
 @lru_cache(maxsize=128)
-def get_all_workout_exericses(current_user: User):
-    with Session(engine) as session:
-        workout_exercises = session.exec(select(WorkoutExercise).where(WorkoutExercise.user_id == current_user.id)).all()
-        data = []
-        for workout_exercise in workout_exercises:
-            exercise = session.exec(select(Exercise).where(Exercise.id == workout_exercise.exercise_id)).first()
-            exercise_data = ExerciseResponseData.model_validate(ExerciseResponseData.from_orm(exercise))
-            exercise_order = session.exec(select(WorkoutExerciseWorkoutOrderLink.exercise_order).where(WorkoutExerciseWorkoutOrderLink.workout_exercise_id == workout_exercise.id)).first()
-            data.append(WorkoutExerciseResponseData.model_validate(workout_exercise, update={"exercise":exercise_data, "exercise_order":exercise_order}))
-        return data
+def get_all_workout_exericses(current_user: User, session: Session):
+    workout_exercises = session.exec(select(WorkoutExercise).where(WorkoutExercise.user_id == current_user.id)).all()
+    data = []
+    for workout_exercise in workout_exercises:
+        exercise = session.exec(select(Exercise).where(Exercise.id == workout_exercise.exercise_id)).first()
+        exercise_data = ExerciseResponseData.model_validate(ExerciseResponseData.from_orm(exercise))
+        exercise_order = session.exec(select(WorkoutExerciseWorkoutOrderLink.exercise_order).where(WorkoutExerciseWorkoutOrderLink.workout_exercise_id == workout_exercise.id)).first()
+        data.append(WorkoutExerciseResponseData.model_validate(workout_exercise, update={"exercise":exercise_data, "exercise_order":exercise_order}))
+    return data
 
 def clear_workout_exercise_cache():
     get_all_workout_exericses.cache_clear()
@@ -34,7 +33,7 @@ def clear_workout_exercise_cache():
 @check_roles(["User"])
 async def get_workout_exercises(current_user: Annotated[User, Security(get_current_user)], session: Session = Depends(get_db)) -> WorkoutExerciseListResponse:
     current_user = session.exec(select(User).where(User.id == current_user.id)).first()
-    data = get_all_workout_exericses(current_user)
+    data = get_all_workout_exericses(current_user, session)
     return WorkoutExerciseListResponse(data=data, detail=f"{len(data)} workout exercises fetched successfully." if len(data) != 1 else f"{len(data)} workout exercise fetched successfully.")
 
 @router.get("/users/me/workout-exercises/{workout_exercise_uuid}", response_model=WorkoutExerciseResponse, status_code=status.HTTP_200_OK, tags=["User"])

@@ -11,7 +11,6 @@ from utilities.hashed_password import HashedPassword
 from models.enums import Gender
 
 class UserBase(SQLModel):
-    username: str = Field(unique=True)
     first_name: str
     last_name: str
     birthday: date
@@ -40,11 +39,13 @@ class UserBase(SQLModel):
 class UserTableBase(UserBase):
     id: int | None = Field(default=None, primary_key=True, index=True)
     uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True, index=True))
+    username: str = Field(unique=True)
     hashed_password: str = Field(sa_column=Column(HashedPassword())) 
 
     Config: ClassVar = ConfigDict(arbitrary_types_allowed=True, json_encoders= {HashedPassword: lambda v: str(v)})
 
 class UserCreateReq(UserBase):
+    username: str
     hashed_password: str
 
 class UserPutReq(SQLModel):

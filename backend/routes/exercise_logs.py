@@ -17,20 +17,19 @@ from utilities.authorization import check_roles, get_current_user
 router = APIRouter()
 
 @lru_cache(maxsize=128)
-def get_all_exercise_logs_cached(current_user: User) -> list[ExerciseLogResponseData]:
-    with Session(engine) as session:
-        exercise_logs = session.exec(select(ExerciseLog).where(ExerciseLog.user_id == current_user.id)).all()
-        data = []
-        for exercise_log in exercise_logs:
-            exercise_data = ExerciseResponseData.model_validate(ExerciseResponseData.from_orm(exercise_log.exercise))
-            data.append(ExerciseLogResponseData.model_validate(exercise_log, update={"exercise": exercise_data, "user_uuid": current_user.uuid}))
-        return data
+def get_all_exercise_logs_cached(current_user: User, session: Session) -> list[ExerciseLogResponseData]:
+    exercise_logs = session.exec(select(ExerciseLog).where(ExerciseLog.user_id == current_user.id)).all()
+    data = []
+    for exercise_log in exercise_logs:
+        exercise_data = ExerciseResponseData.model_validate(ExerciseResponseData.from_orm(exercise_log.exercise))
+        data.append(ExerciseLogResponseData.model_validate(exercise_log, update={"exercise": exercise_data, "user_uuid": current_user.uuid}))
+    return data
 
 @router.get("/users/me/exercise_logs", response_model=ExerciseLogListResponse, status_code=status.HTTP_200_OK, tags=["User"])
 @check_roles(["User"])
 async def get_all_exercise_logs(current_user: Annotated[User, Security(get_current_user)], session: Session = Depends(get_db)) -> ExerciseLogListResponse:
     current_user = session.exec(select(User).where(User.id == current_user.id)).first()
-    data = get_all_exercise_logs_cached(current_user)
+    data = get_all_exercise_logs_cached(current_user, session)
     return ExerciseLogListResponse(data=data, detail="Exercise Logs fetched successfully.")
 
 @router.get("/users/me/exercise_logs/{exercise_log_uuid:uuid}", response_model=ExerciseLogResponse, status_code=status.HTTP_200_OK, tags=["User"])

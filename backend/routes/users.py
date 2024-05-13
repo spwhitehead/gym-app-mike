@@ -11,27 +11,9 @@ from models.relationship_merge import User
 from models.responses import UserResponseData, UserResponse, UserListResponse
 from models.relationship_merge import Role
 from utilities.authorization import check_roles, get_current_user
-import logging
 
 router = APIRouter()
 
-def setup_logging():
-    # Create a logger object
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)  # Set the minimum level to capture all logs
-
-    # Create file handler which logs even debug messages
-    fh = logging.FileHandler('debug.log')
-    fh.setLevel(logging.DEBUG)  # Ensure the handler captures all debug logs
-
-    # Create formatter and add it to the handler
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    fh.setFormatter(formatter)
-
-    # Add the handler to the logger
-    logger.addHandler(fh)
-
-setup_logging()
 
 # Get Requests 
 @router.get("/users/all", response_model=UserListResponse, status_code=status.HTTP_200_OK, tags=["Admin"])
@@ -45,7 +27,6 @@ async def get_users_and_admins(current_user: Annotated[User, Security(get_curren
 @router.get("/users/me", response_model=UserResponse, status_code=status.HTTP_200_OK, tags=["User", "Admin"])
 @check_roles(["User", "Admin"])
 async def get_logged_in_user(current_user: Annotated[User, Security(get_current_user)], session: Session = Depends(get_db)) -> UserResponse:
-    logging.debug("Entered get_current_user")
     current_user = session.exec(select(User).where(User.id == current_user.id)).first()
     data = UserResponseData.model_validate(current_user, update={"roles":[role.name for role in current_user.roles]})
     return UserResponse(data=data, detail="User fetched successfully.")
