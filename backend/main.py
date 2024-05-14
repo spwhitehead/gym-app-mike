@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException 
+from fastapi.middleware.cors import CORSMiddleware
 from pyngrok import ngrok
 
 from db import engine, SQLModel
@@ -6,6 +7,14 @@ from routes import authorization, exercises, users, workouts, workout_exercises,
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3001"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+
+)
 
 app.include_router(authorization.router, tags=["Authorization"])
 app.include_router(exercises.router, tags=["Exercises"])
