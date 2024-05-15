@@ -13,6 +13,7 @@ services:
       - gymapp_pgdata:/var/lib/postgresql/data # Persists data across container rebuilds
 
   backend:
+    image: mikejacks/gym-app-backend:latest
     build: ./backend
     volumes:
       - ./backend:/app
@@ -22,6 +23,7 @@ services:
       - ./backend/.env
 
   frontend:
+    image: mikejacks/gym-app-frontend:latest
     build: ./gym-app-frontend
     working_dir: /app
     volumes:
@@ -33,15 +35,15 @@ services:
       - NODE_ENV=development
     command: sh -c "npm install && npm run dev"
 
-  ngrok:
-    image: ngrok/ngrok:latest
-    restart: unless-stopped
-    platform: linux/amd64
-    command: ["start", "--all", "--config", "/etc/ngrok/ngrok.yml"]
-    volumes:
-      - ./ngrok.yml:/etc/ngrok/ngrok.yml
-    ports:
-      - "4040:4040" # ngrok web interface
+  # ngrok:
+  #   image: ngrok/ngrok:latest
+  #   restart: unless-stopped
+  #   platform: linux/amd64
+  #   command: ["start", "--all", "--config", "/etc/ngrok/ngrok.yml"]
+  #   volumes:
+  #     - ./ngrok.yml:/etc/ngrok/ngrok.yml
+  #   ports:
+  #     - "4040:4040" # ngrok web interface
 
 volumes:
   gymapp_pgdata:

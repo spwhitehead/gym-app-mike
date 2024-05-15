@@ -178,7 +178,7 @@ const Exercises: React.FC = () => {
         </div>
         <div className="flex flex-col items-center w-full">
           <p className="text-white mb-2">Filter by specific muscles:</p>
-          <div className="grid grid-rows-3 grid-flow-col gap-2 justify-center">
+          <div className="grid lg:grid-rows-3 grid-rows-9 grid-flow-col gap-2 justify-center">
             {uniqueSpecificMuscles.map((muscle) => (
               <label key={muscle} className="flex items-center text-white">
                 <input

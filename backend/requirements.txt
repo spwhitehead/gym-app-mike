@@ -9,5 +9,6 @@ bcrypt
 pyngrok
 python-decouple
 psycopg2-binary
+asyncpg
 python-multipart
 python-jose[cryptography]
