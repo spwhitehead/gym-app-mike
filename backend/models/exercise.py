@@ -13,6 +13,7 @@ class ExerciseBase(SQLModel):
 class ExerciseTableBase(ExerciseBase):
     id: int | None = Field(default=None, primary_key=True, index=True)
     uuid: UUID | None = Field(default_factory=new_uuid, sa_column=Column(GUID(), unique=True, index=True))
+    image_url: str | None = Field(default=None)
     workout_category_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("workoutcategory.id", ondelete="CASCADE"), index = True))
     movement_category_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("movementcategory.id", ondelete="CASCADE"), index = True))
     equipment_id: int | None = Field(default=None, sa_column=Column(Integer, ForeignKey("equipment.id", ondelete="CASCADE"), index = True))

@@ -15,6 +15,7 @@ class ExerciseResponseData(ExerciseBase):
     equipment: str | None
     major_muscle: str | None
     specific_muscles: list[str] | None
+    image_url: str | None
 
     @classmethod
     def from_orm(cls, db_obj: Exercise):
@@ -26,7 +27,8 @@ class ExerciseResponseData(ExerciseBase):
             movement_category = db_obj.movement_category.name if db_obj.movement_category else None,
             equipment = db_obj.equipment.name if db_obj.equipment else None,
             major_muscle = db_obj.major_muscle.name if db_obj.major_muscle else None,
-            specific_muscles = [specific_muscle.name for specific_muscle in db_obj.specific_muscles]
+            specific_muscles = [specific_muscle.name for specific_muscle in db_obj.specific_muscles],
+            image_url = db_obj.image_url
         )
 
 class ExerciseResponse(SQLModel):
