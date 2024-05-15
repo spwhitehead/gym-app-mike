@@ -2,7 +2,7 @@
 import { error } from "console";
 import { RegistrationDataInput } from "./interfaces";
 
-const API_URL = "http://localhost:8000";
+const API_URL = "https://gym-app-txup.onredner.com";
 
 class CustomError extends Error {
   detail: string | undefined;
