@@ -48,9 +48,11 @@ export default function ExerciseCard({
       {isExpanded && (
         <div className="mt-4">
           <div className="space-y-4 mx-5 mb-10">
-            <div className="flex justify-center h-full">
-              <Image src={image_url} alt={name} width={200} height={200} className="rounded-2xl" unoptimized></Image>
-            </div>
+            {image_url && (
+              <div className="flex justify-center h-full">
+                <Image src={image_url} alt={name} width={200} height={200} className="rounded-2xl" unoptimized></Image>
+              </div>
+            )}
             <div className="flex justify-between items-center p-2 bg-gray-700 rounded-md transition-transform hover:scale-105 hover:text-gray-700 hover:bg-gray-100 hover:font-bold">
               <strong className="text-sm">Workout Category: </strong>
               <span className="text-sm">{workout_category}</span>

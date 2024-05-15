@@ -20,7 +20,7 @@ export default function Header() {
             <Link onClick={handleLogout} href="/login">
               Logout
             </Link>{" "}
-            | <Link href="/exercises">Exercises</Link> | <Link href="/workouts">Workouts</Link>{" "}
+            | <Link href="/exercises">Exercises</Link>{" "}
           </>
         ) : (
           <>

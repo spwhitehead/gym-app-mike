@@ -75,7 +75,7 @@ const Register: React.FC = () => {
             placeholder="First Name"
             value={formData.first_name}
             onChange={handleChange}
-            className="p-2 border w-full"
+            className="p-2 border w-full  text-gray-800"
             required
           />
         </div>
@@ -90,7 +90,7 @@ const Register: React.FC = () => {
             placeholder="Last Name"
             value={formData.last_name}
             onChange={handleChange}
-            className="p-2 border w-full"
+            className="p-2 border w-full text-gray-800"
             required
           />
         </div>
@@ -105,7 +105,7 @@ const Register: React.FC = () => {
             placeholder="Birthday"
             value={formData.birthday}
             onChange={handleDateChange}
-            className="p-2 border w-full"
+            className="p-2 border w-full text-gray-800"
             required
           />
         </div>
@@ -120,7 +120,7 @@ const Register: React.FC = () => {
             placeholder="Body Weight (lb)"
             value={formData.body_weight}
             onChange={handleChange}
-            className="p-2 border w-full"
+            className="p-2 border w-full text-gray-800"
             required
           />
         </div>
@@ -135,7 +135,7 @@ const Register: React.FC = () => {
             placeholder="Height (cm)"
             value={formData.height}
             onChange={handleChange}
-            className="p-2 border w-full"
+            className="p-2 border w-full text-gray-800"
             required
           />
         </div>
@@ -143,7 +143,7 @@ const Register: React.FC = () => {
           <label htmlFor="gender" className="mb-1 text-left">
             Gender:
           </label>
-          <select id="gender" name="gender" value={formData.gender} onChange={handleChange} className="p-2 border w-full" required>
+          <select id="gender" name="gender" value={formData.gender} onChange={handleChange} className="p-2 border w-full  text-gray-800" required>
             <option value="male">Male</option>
             <option value="female">Female</option>
           </select>
@@ -159,7 +159,7 @@ const Register: React.FC = () => {
             placeholder="Username"
             value={formData.username}
             onChange={handleChange}
-            className="p-2 border w-full"
+            className="p-2 border w-full text-gray-800"
             required
           />
         </div>
@@ -173,7 +173,7 @@ const Register: React.FC = () => {
               placeholder="Password"
               value={formData.hashed_password}
               onChange={handleChange}
-              className="p-2 border w-full mb-3"
+              className="p-2 border w-full mb-3 text-gray-800"
               required
             />
           </label>

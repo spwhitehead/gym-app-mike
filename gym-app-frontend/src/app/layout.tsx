@@ -6,8 +6,8 @@ import { AuthProvider } from "../app/components/AuthContext";
 
 const RootLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <AuthProvider>
-    <html lang="en">
-      <body>
+    <html lang="en" className="dark">
+      <body className="text-white">
         <Header />
         <main className="container mx-auto p-4 mt-20">{children}</main>
         <Footer />

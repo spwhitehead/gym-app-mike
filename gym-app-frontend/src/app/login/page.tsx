@@ -50,7 +50,7 @@ const Login: React.FC = () => {
             placeholder="Username"
             value={formData.username}
             onChange={handleChange}
-            className="p-2 border w-full"
+            className="p-2 border w-full text-gray-800"
             required
           />
         </div>
@@ -65,7 +65,7 @@ const Login: React.FC = () => {
             placeholder="Password"
             value={formData.password}
             onChange={handleChange}
-            className="p-2 border w-full"
+            className="p-2 border w-full text-gray-800"
             required
           />
         </div>
