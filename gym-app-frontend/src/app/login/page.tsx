@@ -2,11 +2,13 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Layout from "../../../components/Layout";
-import { login } from "../../../utils/api";
+import Layout from "../components/Layout";
+import { login } from "../utils/api";
+import { useAuth } from "../components/AuthContext";
 
 const Login: React.FC = () => {
   const router = useRouter();
+  const { setToken } = useAuth();
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
   const [errorDescription, setErrorDescription] = useState("");
@@ -24,6 +26,7 @@ const Login: React.FC = () => {
     try {
       const response = await login(formData.username, formData.password);
       localStorage.setItem("token", response.access_token);
+      setToken(response.access_token);
       router.push("/exercises");
     } catch (err: any) {
       setError("Login failed");
@@ -34,7 +37,7 @@ const Login: React.FC = () => {
 
   return (
     <Layout>
-      <h2 className="text-2xl">Login</h2>
+      <h2 className="text-2xl mb-10 text-center">Login</h2>
       <form onSubmit={handleSubmit} className="flex flex-col items-center py-4 w-full max-w-md mx-auto">
         <div className="flex flex-col w-full mb-3">
           <label htmlFor="username" className="mb-1 text-left">

@@ -1,8 +1,8 @@
 // src/app/workouts/page.tsx
 "use client";
 import { useEffect, useState } from "react";
-import Layout from "../../../components/Layout";
-import { fetchWorkouts } from "../../../utils/api";
+import Layout from "../components/Layout";
+import { fetchWorkouts } from "../utils/api";
 
 interface Workout {
   uuid: string;
@@ -18,7 +18,7 @@ const Workouts: React.FC = () => {
 
   return (
     <Layout>
-      <h2 className="text-2xl">Workouts</h2>
+      <h2 className="text-2xl mb-10 text-center">Workouts</h2>
       <ul>
         {workouts.map((workout) => (
           <li key={workout.uuid} className="py-2">

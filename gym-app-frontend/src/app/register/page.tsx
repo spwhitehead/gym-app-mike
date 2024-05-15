@@ -2,9 +2,9 @@
 // src/app/register/page.tsx
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Layout from "../../../components/Layout";
-import { register } from "../../../utils/api";
-import { RegistrationDataInput } from "../../../utils/interfaces";
+import Layout from "../components/Layout";
+import { register } from "../utils/api";
+import { RegistrationDataInput } from "../utils/interfaces";
 
 function newDate() {
   return new Date().toISOString().split("T")[0];
@@ -62,7 +62,7 @@ const Register: React.FC = () => {
 
   return (
     <Layout>
-      <h2 className="text-2xl">Register</h2>
+      <h2 className="text-2xl mb-10 text-center">Register</h2>
       <form onSubmit={handleSubmit} className="flex flex-col items-center py-4 w-full max-w-md mx-auto">
         <div className="flex flex-col w-full mb-3">
           <label htmlFor="first_name" className="mb-1 text-left">

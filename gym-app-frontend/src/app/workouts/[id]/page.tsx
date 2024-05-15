@@ -2,8 +2,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import Layout from "../../../../components/Layout";
-import { fetchWorkoutById } from "../../../../utils/api";
+import Layout from "../../components/Layout";
+import { fetchWorkoutById } from "../../utils/api";
 
 interface Workout {
   id: number;
