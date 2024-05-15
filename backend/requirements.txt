@@ -8,6 +8,6 @@ httpx
 bcrypt
 pyngrok
 python-decouple
-psycopg2
+psycopg2-binary
 python-multipart
 python-jose[cryptography]
