@@ -35,7 +35,8 @@ def test_get_exercises(client_full_db: TestClient, session: Session):
             "major_muscle": "Chest",
             "specific_muscles": [
                 "Middle Chest", "Triceps"
-            ]
+            ],
+            "image_url": None
         },
         {
             "uuid": str(session.exec(select(Exercise).where(Exercise.uuid == UUID(response_dict['data'][1]['uuid']))).first().uuid),
@@ -47,7 +48,8 @@ def test_get_exercises(client_full_db: TestClient, session: Session):
             "major_muscle": "Chest",
             "specific_muscles": [
                 "Middle Chest", "Triceps"
-            ]
+            ],
+            "image_url": None
         },
         {
             "uuid": str(session.exec(select(Exercise).where(Exercise.uuid == UUID(response_dict['data'][2]['uuid']))).first().uuid),
@@ -59,7 +61,8 @@ def test_get_exercises(client_full_db: TestClient, session: Session):
             "major_muscle": "Chest",
             "specific_muscles": [
                 "Middle Chest", "Triceps"
-            ]
+            ],
+            "image_url": None
         },
         ],
         'detail': 'Exercises fetched successfully.'
@@ -76,7 +79,8 @@ def test_post_exercise(client_login: TestClient, session: Session):
         "major_muscle": "Chest",
         "specific_muscles": [
             "Middle Chest", "Triceps"
-        ]
+        ],
+        "image_url": None
     }
     response: Response = client.post("/users/me/exercises", json=data)
     response_dict = response.json()
@@ -99,7 +103,8 @@ def test_post_exercise(client_login: TestClient, session: Session):
             "specific_muscles": [
                 "Middle Chest",
                 "Triceps"
-            ]
+            ],
+            "image_url": None
             },
         "detail": "Exercise added successfully."
         }
@@ -120,7 +125,8 @@ def test_update_exercise(client_full_db: TestClient, session: Session):
             "major_muscle": "Chest",
             "specific_muscles": [
                 "Middle Chest", "Triceps"
-            ]
+            ],
+            "image_url": None
             } 
     response = client_full_db.put(f"/users/me/exercises/{exercise_uuid}", json=new_data)
     response_dict = response.json()
@@ -136,7 +142,8 @@ def test_update_exercise(client_full_db: TestClient, session: Session):
             "major_muscle": "Chest",
             "specific_muscles": [
                 "Middle Chest", "Triceps"
-            ]
+            ],
+            "image_url": None
             },
         "detail": "Exercise updated successfully."
         }
@@ -169,7 +176,8 @@ def test_patch_exercise(client_full_db: TestClient, session: Session):
             "major_muscle": "Chest",
             "specific_muscles": [
                 "Middle Chest", "Triceps"
-            ]
+            ],
+            "image_url": None
             },
         "detail": "Exercise patched successfully."
         }

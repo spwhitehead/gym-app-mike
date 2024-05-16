@@ -43,7 +43,8 @@ def test_post_exercise_log(client_full_db: TestClient):
                     "Triceps"
                     ],
                 "uuid": exercise_uuid,
-                "workout_category": "Upper"
+                "workout_category": "Upper",
+                "image_url": None
                 },
             "reps": 10,
             "uuid": response_dict["data"]["uuid"],
@@ -93,7 +94,8 @@ def test_put_exercise_log(client_full_db: TestClient, session: Session):
                     "Triceps"
                     ],
                 "uuid": exercise_uuid,
-                "workout_category": "Upper"
+                "workout_category": "Upper",
+                "image_url": None
                 },
             "reps": 200,
             "uuid": exercise_log_uuid,
@@ -139,7 +141,8 @@ def test_patch_exercise_log(client_full_db: TestClient, session: Session):
                     "Triceps"
                     ],
                 "uuid": str(session.exec(select(Exercise).where(Exercise.id == exercise_id)).first().uuid),
-                "workout_category": "Upper"
+                "workout_category": "Upper",
+                "image_url": None 
                 },
             "reps": 20,
             "uuid": exercise_log_uuid,

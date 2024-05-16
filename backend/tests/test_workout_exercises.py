@@ -57,7 +57,8 @@ def test_get_workout_exercises(client_full_db_with_workout_exercises: TestClient
                 'movement_category': 'Press',
                 'equipment': 'Dumbbell',
                 'major_muscle': 'Chest',
-                'specific_muscles': ['Middle Chest', 'Triceps']
+                'specific_muscles': ['Middle Chest', 'Triceps'],
+                "image_url": None
             },
             'uuid': response_dict['data'][0]['uuid'],
             'planned_sets': 3,
@@ -74,7 +75,8 @@ def test_get_workout_exercises(client_full_db_with_workout_exercises: TestClient
                 'movement_category': 'Press',
                 'equipment': 'Barbell',
                 'major_muscle': 'Chest',
-                'specific_muscles': ['Middle Chest', 'Triceps']
+                'specific_muscles': ['Middle Chest', 'Triceps'],
+                "image_url": None
             },
             'uuid': response_dict['data'][1]['uuid'],
             'planned_sets': 3,
@@ -91,7 +93,8 @@ def test_get_workout_exercises(client_full_db_with_workout_exercises: TestClient
                 'movement_category': 'Fly',
                 'equipment': 'Dumbbell',
                 'major_muscle': 'Chest',
-                'specific_muscles': ['Middle Chest', 'Triceps']
+                'specific_muscles': ['Middle Chest', 'Triceps'],
+                "image_url": None
             },
             'uuid': response_dict['data'][2]['uuid'],
             'planned_sets': 3,
@@ -118,7 +121,8 @@ def test_get_workout_exercise(client_full_db_with_workout_exercises: TestClient)
                 'movement_category': 'Press',
                 'equipment': 'Dumbbell',
                 'major_muscle': 'Chest',
-                'specific_muscles': ['Middle Chest', 'Triceps']
+                'specific_muscles': ['Middle Chest', 'Triceps'],
+                "image_url": None
             },
             'uuid': response_dict['data']['uuid'],
             'planned_sets': 3,
@@ -146,7 +150,8 @@ def test_post_workout_exercise(client_full_db_with_workout_exercises: TestClient
             'movement_category': 'Fly',
             'equipment': 'Dumbbell',
             'major_muscle': 'Chest',
-            'specific_muscles': ['Middle Chest', 'Triceps']
+            'specific_muscles': ['Middle Chest', 'Triceps'],
+            "image_url": None
         },
         'uuid': response_dict['data']['uuid'],
         'planned_sets': 3,
@@ -179,7 +184,8 @@ def test_put_workout_exercise(client_full_db_with_workout_exercises: TestClient,
             'movement_category': 'Fly',
             'equipment': 'Dumbbell',
             'major_muscle': 'Chest',
-            'specific_muscles': ['Middle Chest', 'Triceps']
+            'specific_muscles': ['Middle Chest', 'Triceps'],
+            "image_url": None
         },
         'uuid': response_dict['data']['uuid'],
         'planned_sets': 3,
@@ -210,7 +216,8 @@ def test_patch_workout_exercise(client_full_db_with_workout_exercises: TestClien
             'movement_category': 'Press',
             'equipment': 'Dumbbell',
             'major_muscle': 'Chest',
-            'specific_muscles': ['Middle Chest', 'Triceps']
+            'specific_muscles': ['Middle Chest', 'Triceps'],
+            "image_url": None
         },
         'uuid': response_dict['data']['uuid'],
         'planned_sets': 3,
