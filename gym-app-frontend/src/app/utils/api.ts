@@ -2,7 +2,7 @@
 import { error } from "console";
 import { RegistrationDataInput } from "./interfaces";
 
-const API_URL = "https://gym-app-txup.onredner.com";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 class CustomError extends Error {
   detail: string | undefined;
