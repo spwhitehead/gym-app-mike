@@ -20,7 +20,7 @@ services:
     ports:
       - "8000:8000" # Maps TCP port 8000 in the container to port 8000 on the host
     env_file:
-      - ./backend/.env
+      - ./backend/.env.docker
     depends_on:
       - db
 

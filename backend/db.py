@@ -75,7 +75,8 @@ def populate_exercise_data(engine: Engine):
             session.commit()
 
 # Engine setting and event listening setup
-postgres_url = str(config("POSTGRES_URL"))
+
+postgres_url = config("POSTGRES_URL")
 engine = create_engine(postgres_url, echo=False)
 
 setup_database(engine)
